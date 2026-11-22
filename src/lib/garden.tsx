@@ -4,6 +4,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 import type { EmotionKey } from '@/theme/theme';
 
 import { useAuth } from './auth';
+import { now as appNow } from './clock';
 import { canEditMemo, PlantKind } from './growth';
 
 /** 묻은 감정 하나 */
@@ -65,7 +66,7 @@ export function GardenProvider({ children }: { children: ReactNode }) {
       entries,
       ready,
       bury: ({ emotion, kind, memo }) => {
-        const now = Date.now();
+        const now = Date.now(); // 기록 시각은 실제 시각 그대로
         const entry: Entry = {
           id: `${now}-${Math.random().toString(36).slice(2, 8)}`,
           emotion,
@@ -79,7 +80,7 @@ export function GardenProvider({ children }: { children: ReactNode }) {
       },
       updateMemo: (id, memo) => {
         const target = entries.find((e) => e.id === id);
-        if (!target || !canEditMemo(target.createdAt, Date.now())) return false;
+        if (!target || !canEditMemo(target.createdAt, appNow())) return false;
         persist(entries.map((e) => (e.id === id ? { ...e, memo: memo.trim(), updatedAt: Date.now() } : e)));
         return true;
       },

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { AppText, Bar, Button, Card, EMOTION_ORDER, ListRow, Screen, ScreenHeader } from '@/components';
+import { AppText, Bar, Button, Card, DevClockPanel, EMOTION_ORDER, ListRow, Screen, ScreenHeader } from '@/components';
 import { useAuth } from '@/lib/auth';
 import { useGarden } from '@/lib/garden';
 import { growthStage } from '@/lib/growth';
@@ -68,6 +68,9 @@ export default function ProfileScreen() {
 
         {/* 임시: 테스트용 로그아웃 */}
         <Button label="로그아웃" variant="ghost" onPress={() => supabase?.auth.signOut()} />
+
+        {/* 개발 빌드에서만 보이는 시간 조절 도구 (출시 빌드에서는 숨김) */}
+        {__DEV__ ? <DevClockPanel /> : null}
       </ScrollView>
     </Screen>
   );
