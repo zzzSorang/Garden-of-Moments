@@ -1,29 +1,26 @@
+import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
-import { AppText, FloatingButton, Screen } from '@/components';
+import { FloatingButton, GardenBed, Screen, ScreenHeader } from '@/components';
+import { useGarden } from '@/lib/garden';
+import { useNow } from '@/lib/useNow';
 import { space } from '@/theme/theme';
 
 export default function GardenScreen() {
+  const { entries } = useGarden();
+  const now = useNow();
+
   return (
     <Screen>
-      <View style={styles.header}>
-        <AppText variant="title">정원</AppText>
+      <ScreenHeader title="나의 정원" subtitle={entries.length ? `묻은 감정 ${entries.length}개` : undefined} />
+      <View style={styles.bed}>
+        <GardenBed entries={entries} now={now} onPressPlant={(id) => router.push({ pathname: '/memory/[id]', params: { id } })} />
       </View>
-      <View style={styles.empty}>
-        <AppText variant="heading" tone="secondary" align="center">
-          아직 묻은 감정이 없어요
-        </AppText>
-        <AppText variant="caption" tone="tertiary" align="center">
-          + 버튼을 눌러 첫 감정을 심어보세요
-        </AppText>
-      </View>
-      {/* TODO: 감정 입력 화면 연결 */}
-      <FloatingButton accessibilityLabel="감정 묻기" onPress={() => {}} />
+      <FloatingButton accessibilityLabel="감정 묻기" onPress={() => router.push('/bury')} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { paddingVertical: space[4] },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[2] },
+  bed: { flex: 1, paddingBottom: space[16] + space[8] },
 });

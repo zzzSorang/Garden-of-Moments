@@ -1,11 +1,22 @@
-import { StyleSheet, View, ViewProps } from 'react-native';
+import { Pressable, StyleSheet, View, ViewProps } from 'react-native';
 
-import { neutral, radius, space } from '@/theme/theme';
+import { elevation, neutral, radius, space } from '@/theme/theme';
 
-type Props = ViewProps & { sunken?: boolean };
+type Props = ViewProps & { sunken?: boolean; onPress?: () => void };
 
-export function Card({ sunken, style, ...rest }: Props) {
-  return <View {...rest} style={[styles.base, sunken && styles.sunken, style]} />;
+export function Card({ sunken, style, onPress, ...rest }: Props) {
+  const s = [styles.base, sunken ? styles.sunken : elevation.card, style];
+  if (onPress) {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        onPress={onPress}
+        style={({ pressed }) => [...s, pressed && styles.pressed]}
+        {...rest}
+      />
+    );
+  }
+  return <View {...rest} style={s} />;
 }
 
 const styles = StyleSheet.create({
@@ -18,4 +29,5 @@ const styles = StyleSheet.create({
     gap: space[3],
   },
   sunken: { backgroundColor: neutral.surfaceSunken },
+  pressed: { backgroundColor: neutral.surfaceSunken },
 });

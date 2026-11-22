@@ -6,29 +6,38 @@ import { AppText } from './AppText';
 
 type Props = Omit<PressableProps, 'children'> & {
   label: string;
-  variant?: 'primary' | 'secondary';
+  /** primary: 진한 초록 CTA · secondary: 테두리 버튼 · ghost: 글자만 · danger: 삭제 */
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   loading?: boolean;
 };
 
 export function Button({ label, variant = 'primary', loading, disabled, style, ...rest }: Props) {
   const isPrimary = variant === 'primary';
   const isDisabled = disabled || loading;
+  const textColor = isPrimary
+    ? brand.onPrimary
+    : variant === 'danger'
+      ? neutral.textSecondary
+      : isDisabled
+        ? neutral.textDisabled
+        : brand.primaryInk;
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityState={{ disabled: !!isDisabled }}
       disabled={isDisabled}
       {...rest}
       style={(state) => [
         styles.base,
-        isPrimary ? styles.primary : styles.secondary,
-        state.pressed && (isPrimary ? styles.primaryPressed : styles.secondaryPressed),
-        isDisabled && styles.disabled,
+        styles[variant],
+        state.pressed && pressedStyle[variant],
+        isPrimary && isDisabled && styles.primaryDisabled,
         typeof style === 'function' ? style(state) : style,
       ]}>
       {loading ? (
         <ActivityIndicator color={isPrimary ? brand.onPrimary : brand.primary} />
       ) : (
-        <AppText variant="bodyStrong" color={isPrimary ? brand.onPrimary : brand.primaryInk}>
+        <AppText variant="bodyStrong" color={textColor}>
           {label}
         </AppText>
       )}
@@ -38,15 +47,22 @@ export function Button({ label, variant = 'primary', loading, disabled, style, .
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: layout.minTouch + space[1],
+    minHeight: layout.minTouch + space[2],
     paddingHorizontal: space[5],
     borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   primary: { backgroundColor: brand.primary },
-  primaryPressed: { backgroundColor: brand.primaryPressed },
-  secondary: { backgroundColor: neutral.surface, borderWidth: 1, borderColor: neutral.border },
-  secondaryPressed: { backgroundColor: brand.primarySoft },
-  disabled: { opacity: 0.5 },
+  primaryDisabled: { backgroundColor: brand.primaryDisabled },
+  secondary: { backgroundColor: neutral.surface, borderWidth: 1, borderColor: neutral.borderSoft },
+  ghost: { backgroundColor: 'transparent' },
+  danger: { backgroundColor: neutral.surface, borderWidth: 1, borderColor: neutral.borderSoft },
+});
+
+const pressedStyle = StyleSheet.create({
+  primary: { backgroundColor: brand.primaryPressed },
+  secondary: { backgroundColor: brand.primarySoft },
+  ghost: { backgroundColor: brand.primarySoft },
+  danger: { backgroundColor: neutral.surfaceSunken },
 });

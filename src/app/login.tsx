@@ -59,7 +59,7 @@ export default function LoginScreen() {
           {!isSupabaseConfigured ? (
             <Card sunken>
               <AppText variant="bodyStrong">아직 서버와 연결되지 않았어요</AppText>
-              <AppText variant="label" tone="secondary">
+              <AppText variant="bodySmall" tone="secondary">
                 프로젝트 폴더의 .env 파일에 Supabase 주소와 키를 넣고 앱을 다시 실행해 주세요.
               </AppText>
             </Card>
@@ -86,12 +86,12 @@ export default function LoginScreen() {
               textContentType={mode === 'signIn' ? 'password' : 'newPassword'}
             />
             {error ? (
-              <AppText variant="label" tone="secondary">
+              <AppText variant="bodySmall" tone="secondary">
                 {error}
               </AppText>
             ) : null}
             {notice ? (
-              <AppText variant="label" color={brand.primaryInk}>
+              <AppText variant="bodySmall" color={brand.primaryInk}>
                 {notice}
               </AppText>
             ) : null}

@@ -13,15 +13,15 @@ export function FloatingButton({ onPress, accessibilityLabel }: Props) {
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       onPress={onPress}
-      style={({ pressed }) => [styles.base, pressed && styles.pressed]}>
-      <AppText variant="title" color={brand.onPrimary}>
+      style={({ pressed }) => [styles.base, elevation.float, pressed && styles.pressed]}>
+      <AppText variant="display" color={brand.onPrimary}>
         +
       </AppText>
     </Pressable>
   );
 }
 
-const size = layout.minTouch + space[3];
+const size = layout.minTouch + space[4];
 
 const styles = StyleSheet.create({
   base: {
@@ -34,7 +34,6 @@ const styles = StyleSheet.create({
     backgroundColor: brand.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    ...elevation.float,
   },
   pressed: { backgroundColor: brand.primaryPressed },
 });
