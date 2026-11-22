@@ -4,8 +4,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 
-const url = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
+const rawUrl = (process.env.EXPO_PUBLIC_SUPABASE_URL ?? '').trim();
+// 대시보드에서 '/rest/v1/'까지 복사해도 동작하도록 기본 주소만 남깁니다.
+const url = rawUrl.replace(/^(https?:\/\/[^/]+).*$/, '$1');
+const anonKey = (process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '').trim();
 
 /** .env 에 Supabase 키가 들어있는지 여부 */
 export const isSupabaseConfigured = url.length > 0 && anonKey.length > 0;

@@ -27,6 +27,8 @@ export const useAuth = () => useContext(AuthContext);
 /** Supabase 오류를 보스님이 읽기 편한 한국어로 바꿔줍니다. */
 export function friendlyAuthError(message: string): string {
   const m = message.toLowerCase();
+  if (m.includes('signups not allowed') || m.includes('logins are disabled') || m.includes('provider is not enabled'))
+    return '지금은 이메일 가입이 꺼져 있어요. Supabase 설정을 확인해 주세요.';
   if (m.includes('invalid login credentials')) return '이메일 또는 비밀번호가 맞지 않아요.';
   if (m.includes('email not confirmed')) return '메일함에서 인증 링크를 먼저 눌러주세요.';
   if (m.includes('already registered')) return '이미 가입된 이메일이에요. 로그인해 주세요.';
