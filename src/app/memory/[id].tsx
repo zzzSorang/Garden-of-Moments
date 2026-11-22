@@ -1,14 +1,21 @@
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
-import { AppText, Button, Card, Chip, Plant, Screen, ScreenHeader, TextField } from '@/components';
+import { AppText, BackLink, Button, Card, EmotionBadge, HeroGradient, PlantIllustration, Screen } from '@/components';
 import { useAuth } from '@/lib/auth';
 import { useGarden } from '@/lib/garden';
-import { canEditMemo, formatDate, formatDuration, growthStage, KIND_LABEL, MEMO_EDIT_WINDOW, STAGE_LABEL, timeToNextStage } from '@/lib/growth';
+import { canEditMemo, formatDuration, growthStage, MEMO_EDIT_WINDOW, STAGE_LABEL, STAGE_MESSAGE, TOTAL_DAYS, visualStage } from '@/lib/growth';
 import { useNow } from '@/lib/useNow';
-import { emotion, space } from '@/theme/theme';
+import { textStyle } from '@/theme/fonts';
+import { brand, makeEmotion, neutral, radius, size, space, stageDot } from '@/theme/theme';
 
+const longDate = (ts: number) => {
+  const d = new Date(ts);
+  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+};
+
+/** 기억 상세 (Make DetailScreen) */
 export default function MemoryDetailScreen() {
   const { session, loading } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -21,91 +28,123 @@ export default function MemoryDetailScreen() {
 
   if (!loading && !session) return <Redirect href="/login" />;
 
-  const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
+  const close = () => (router.canGoBack() ? router.back() : router.replace('/memories'));
 
   if (!entry) {
     return (
       <Screen>
-        <ScreenHeader title="기억" left={<Button label="‹" variant="ghost" onPress={close} />} />
-        <AppText tone="tertiary">이 기억을 찾을 수 없어요.</AppText>
+        <View style={styles.top}>
+          <BackLink label="기억함" onPress={close} />
+        </View>
+        <AppText tone="tertiary" align="center">
+          이 기억을 찾을 수 없어요.
+        </AppText>
       </Screen>
     );
   }
 
-  const e = emotion[entry.emotion];
-  const stage = growthStage(entry.kind, entry.createdAt, now);
-  const next = timeToNextStage(entry.kind, entry.createdAt, now);
+  const e = makeEmotion[entry.emotion];
+  const growth = growthStage(entry.kind, entry.createdAt, now);
+  const stage = visualStage(entry.kind, growth);
+  const elapsed = now - entry.createdAt;
+  const days = Math.floor(elapsed / 86_400_000);
   const editable = canEditMemo(entry.createdAt, now);
-  const editLeft = MEMO_EDIT_WINDOW - (now - entry.createdAt);
+  const plantSize = stage === 'tree' ? 140 : stage === 'sapling' ? 120 : 100;
 
   return (
     <Screen edges={['top', 'bottom']}>
-      <ScreenHeader title="기억" left={<Button label="‹ 뒤로" variant="ghost" onPress={close} />} />
-      <ScrollView contentContainerStyle={styles.content}>
-        <Card sunken style={styles.hero}>
-          <Plant kind={entry.kind} emotionKey={entry.emotion} stage={stage} scale={2} />
-        </Card>
+      <View style={styles.top}>
+        <BackLink label="기억함" onPress={close} />
+      </View>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <View style={styles.hero}>
+          <HeroGradient from={e.lightColor} />
+          <View style={[styles.glow, { backgroundColor: e.color }]} />
+          <View style={styles.heroPlant}>
+            <PlantIllustration emotion={entry.emotion} stage={stage} size={plantSize} />
+          </View>
+        </View>
 
-        <Card>
-          <Row label="감정">
-            <Chip label={e.label} emotionKey={entry.emotion} />
-          </Row>
-          <Row label="성장 단계">
-            <AppText variant="body">
-              {KIND_LABEL[entry.kind]} · {STAGE_LABEL[entry.kind][stage]}
-            </AppText>
-          </Row>
-          <Row label="묻은 날">
-            <AppText variant="body">{formatDate(entry.createdAt)}</AppText>
-          </Row>
-          <Row label="지난 시간">
-            <AppText variant="body">{formatDuration(now - entry.createdAt)}</AppText>
-          </Row>
-          {next !== null ? (
-            <Row label="다음 단계까지">
-              <AppText variant="body" tone="secondary">
-                {formatDuration(next)}
+        <View style={styles.content}>
+          <AppText variant="body" color={brand.primaryInk} align="center">
+            {STAGE_MESSAGE[stage]}
+          </AppText>
+
+          <Card style={styles.info}>
+            <Row label="감정">
+              <EmotionBadge emotionKey={entry.emotion} />
+            </Row>
+            <View style={styles.divider} />
+            <Row label="성장 단계">
+              <View style={styles.stageRow}>
+                <View style={[styles.stageDot, { backgroundColor: stageDot[stage] }]} />
+                <AppText variant="bodySmall">{STAGE_LABEL[entry.kind][growth]}</AppText>
+              </View>
+            </Row>
+            <View style={styles.divider} />
+            <Row label="묻은 날">
+              <AppText variant="bodySmall">{longDate(entry.createdAt)}</AppText>
+            </Row>
+            <View style={styles.divider} />
+            <Row label="경과 일수">
+              <AppText variant="bodySmall">
+                {days}일 / {TOTAL_DAYS[entry.kind]}일
               </AppText>
             </Row>
-          ) : null}
-        </Card>
+          </Card>
 
-        <Card>
-          <View style={styles.memoHead}>
-            <AppText variant="heading">메모</AppText>
-            <AppText variant="caption" tone="tertiary">
-              {editable ? `${formatDuration(editLeft)} 동안 고칠 수 있어요` : '24시간이 지나 고칠 수 없어요'}
-            </AppText>
-          </View>
           {editing && editable ? (
-            <>
-              <TextField value={draft} onChangeText={setDraft} multiline maxLength={500} autoFocus />
+            <Card>
+              <AppText variant="caption" tone="tertiary">
+                그날의 메모
+              </AppText>
+              <TextInput value={draft} onChangeText={setDraft} multiline maxLength={500} autoFocus style={styles.memoInput} />
               <View style={styles.row}>
-                <Button label="취소" variant="secondary" style={styles.flex} onPress={() => { setDraft(entry.memo); setEditing(false); }} />
+                <Button label="취소" variant="secondary" style={styles.flex} onPress={() => setEditing(false)} />
                 <Button label="저장" style={styles.flex} onPress={() => { updateMemo(entry.id, draft); setEditing(false); }} />
               </View>
-            </>
-          ) : (
-            <>
-              <AppText variant="poem" tone={entry.memo ? 'primary' : 'tertiary'}>
-                {entry.memo || '메모 없음'}
+            </Card>
+          ) : entry.memo ? (
+            <Card style={styles.memoCard}>
+              <AppText variant="caption" tone="tertiary">
+                그날의 메모
               </AppText>
-              {editable ? <Button label="메모 고치기" variant="secondary" onPress={() => { setDraft(entry.memo); setEditing(true); }} /> : null}
-            </>
-          )}
-        </Card>
-
-        {confirmDelete ? (
-          <Card sunken>
-            <AppText variant="body">이 기억을 지울까요? 지우면 되돌릴 수 없어요.</AppText>
-            <View style={styles.row}>
-              <Button label="취소" variant="secondary" style={styles.flex} onPress={() => setConfirmDelete(false)} />
-              <Button label="지우기" variant="danger" style={styles.flex} onPress={() => { remove(entry.id); close(); }} />
+              <AppText variant="bodySmall">{entry.memo}</AppText>
+            </Card>
+          ) : (
+            <View style={styles.memoEmpty}>
+              <AppText variant="bodySmall" tone="tertiary" align="center">
+                메모가 없어요
+              </AppText>
             </View>
-          </Card>
-        ) : (
-          <Button label="기억 지우기" variant="ghost" onPress={() => setConfirmDelete(true)} />
-        )}
+          )}
+
+          {/* 기획: 메모는 24시간 안에만 수정, 삭제는 언제든 — 메모 카드 아래 작게 */}
+          {!editing ? (
+            confirmDelete ? (
+              <View style={styles.confirm}>
+                <AppText variant="bodySmall" align="center">
+                  이 기억을 지울까요? 지우면 되돌릴 수 없어요.
+                </AppText>
+                <View style={styles.row}>
+                  <Button label="취소" variant="secondary" style={styles.flex} onPress={() => setConfirmDelete(false)} />
+                  <Button label="지우기" style={styles.flex} onPress={() => { remove(entry.id); close(); }} />
+                </View>
+              </View>
+            ) : (
+              <View style={styles.actions}>
+                {editable ? (
+                  <Button
+                    label={`메모 고치기 · ${formatDuration(MEMO_EDIT_WINDOW - elapsed)} 남음`}
+                    variant="ghost"
+                    onPress={() => { setDraft(entry.memo); setEditing(true); }}
+                  />
+                ) : null}
+                <Button label="기억 지우기" variant="danger" onPress={() => setConfirmDelete(true)} />
+              </View>
+            )
+          ) : null}
+        </View>
       </ScrollView>
     </Screen>
   );
@@ -123,10 +162,30 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 }
 
 const styles = StyleSheet.create({
-  content: { gap: space[4], paddingBottom: space[10] },
-  hero: { alignItems: 'center', justifyContent: 'flex-end', minHeight: space[16] * 3, paddingBottom: space[8] },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space[3] },
-  memoHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: space[2], flexWrap: 'wrap' },
+  top: { paddingTop: space[4], paddingBottom: space[4], paddingHorizontal: space[6] },
+  scroll: { paddingBottom: space[6] },
+  hero: {
+    marginHorizontal: space[6],
+    minHeight: size.heroMin,
+    borderRadius: radius.xl,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: space[8],
+  },
+  heroPlant: { zIndex: 1 },
+  glow: { position: 'absolute', width: size.heroGlow, height: size.heroGlow, borderRadius: radius.full, opacity: 0.12, bottom: -space[10] },
+  content: { paddingHorizontal: space[6], paddingTop: space[6], gap: space[5] },
+  info: { gap: space[4] },
+  infoRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  divider: { height: 1, backgroundColor: neutral.divider },
+  stageRow: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
+  stageDot: { width: 10, height: 10, borderRadius: radius.full },
+  memoCard: { gap: space[3] },
+  memoEmpty: { padding: space[5], borderRadius: radius.lg, backgroundColor: neutral.gardenSky, borderWidth: 1.5, borderStyle: 'dashed', borderColor: neutral.borderSoft },
+  memoInput: { ...textStyle('bodySmall'), color: neutral.textPrimary, minHeight: size.memoMin, textAlignVertical: 'top', padding: 0 },
+  actions: { alignItems: 'center' },
+  confirm: { gap: space[3] },
   row: { flexDirection: 'row', gap: space[3] },
   flex: { flex: 1 },
 });

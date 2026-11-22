@@ -1,66 +1,78 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { AppText, Card, Chip, EMOTION_ORDER, Plant, Screen, ScreenHeader, SegmentedTabs } from '@/components';
+import { AppText, Chip, EMOTION_ORDER, Emoji, EmotionBadge, PlantIllustration, Screen, ScreenHeader, SegmentedTabs } from '@/components';
 import { Entry, useGarden } from '@/lib/garden';
-import { formatDate, growthStage, KIND_LABEL, STAGE_LABEL } from '@/lib/growth';
+import { growthStage, STAGE_LABEL, visualStage } from '@/lib/growth';
 import { useNow } from '@/lib/useNow';
-import { emotion, EmotionKey, space } from '@/theme/theme';
+import { elevation, emotion, EmotionKey, makeEmotion, neutral, radius, space, stageDot } from '@/theme/theme';
 
 type Sort = 'date' | 'emotion';
 
+const dateText = (ts: number) => {
+  const d = new Date(ts);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+};
+
+/** 기억함 (Make SeedBoxScreen) */
 export default function MemoriesScreen() {
   const { entries } = useGarden();
   const now = useNow();
   const [sort, setSort] = useState<Sort>('date');
-  const [filter, setFilter] = useState<EmotionKey | 'all'>('all');
-
-  const counts = useMemo(() => {
-    const c = Object.fromEntries(EMOTION_ORDER.map((k) => [k, 0])) as Record<EmotionKey, number>;
-    entries.forEach((e) => c[e.emotion]++);
-    return c;
-  }, [entries]);
+  const [filter, setFilter] = useState<EmotionKey | null>(null);
 
   const list = useMemo(() => {
-    const filtered = filter === 'all' ? entries : entries.filter((e) => e.emotion === filter);
+    const filtered = filter ? entries.filter((e) => e.emotion === filter) : entries;
     const byDate = [...filtered].sort((a, b) => b.createdAt - a.createdAt);
-    if (sort === 'date') return byDate;
-    return byDate.sort((a, b) => EMOTION_ORDER.indexOf(a.emotion) - EMOTION_ORDER.indexOf(b.emotion));
+    return sort === 'date' ? byDate : byDate.sort((a, b) => EMOTION_ORDER.indexOf(a.emotion) - EMOTION_ORDER.indexOf(b.emotion));
   }, [entries, filter, sort]);
 
-  const renderItem = ({ item }: { item: Entry }) => {
-    const stage = growthStage(item.kind, item.createdAt, now);
-    const e = emotion[item.emotion];
+  if (entries.length === 0) {
     return (
-      <Card onPress={() => router.push({ pathname: '/memory/[id]', params: { id: item.id } })} style={styles.card}>
-        <View style={styles.cardRow}>
-          <View style={styles.plantBox}>
-            <Plant kind={item.kind} emotionKey={item.emotion} stage={stage} scale={0.7} />
-          </View>
-          <View style={styles.flex}>
-            <View style={styles.titleRow}>
-              <Chip label={e.label} emotionKey={item.emotion} />
-              <AppText variant="bodySmall" tone="tertiary">
-                {KIND_LABEL[item.kind]} · {STAGE_LABEL[item.kind][stage]}
-              </AppText>
-            </View>
-            <AppText variant="bodySmall" tone="secondary" numberOfLines={1}>
-              {item.memo || '메모 없음'}
-            </AppText>
-            <AppText variant="caption" tone="tertiary">
-              {formatDate(item.createdAt)}
-            </AppText>
-          </View>
+      <Screen style={styles.emptyAll}>
+        <Emoji size="hero">🌱</Emoji>
+        <AppText variant="body" tone="tertiary" style={styles.emptyTitle}>
+          아직 묻은 기억이 없어요
+        </AppText>
+        <AppText variant="bodySmall" tone="tertiary">
+          감정을 묻어보아요
+        </AppText>
+      </Screen>
+    );
+  }
+
+  const renderItem = ({ item }: { item: Entry }) => {
+    const stage = visualStage(item.kind, growthStage(item.kind, item.createdAt, now));
+    return (
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push({ pathname: '/memory/[id]', params: { id: item.id } })}
+        style={({ pressed }) => [styles.card, elevation.card, pressed && styles.pressed]}>
+        <PlantIllustration emotion={item.emotion} stage={stage} size={48} />
+        <View style={styles.cardBody}>
+          <EmotionBadge emotionKey={item.emotion} size="xs" />
+          <AppText variant="bodySmall" tone={item.memo ? 'secondary' : 'tertiary'} numberOfLines={2}>
+            {item.memo || '메모 없음'}
+          </AppText>
+          <AppText variant="caption" tone="tertiary">
+            {dateText(item.createdAt)}
+          </AppText>
         </View>
-      </Card>
+        <View style={styles.stage}>
+          <View style={[styles.stageDot, { backgroundColor: stageDot[stage] }]} />
+          <AppText variant="caption" tone="tertiary">
+            {STAGE_LABEL[item.kind][growthStage(item.kind, item.createdAt, now)]}
+          </AppText>
+        </View>
+      </Pressable>
     );
   };
 
   return (
     <Screen>
-      <ScreenHeader title="기억함" subtitle={`모두 ${entries.length}개`} />
-      <View style={styles.controls}>
+      <ScreenHeader title="기억함" subtitle={filter ? `${emotion[filter].label} ${list.length}개` : `묻은 감정 ${entries.length}개`} />
+      <View style={styles.segment}>
         <SegmentedTabs
           value={sort}
           onChange={setSort}
@@ -69,10 +81,19 @@ export default function MemoriesScreen() {
             { value: 'emotion', label: '감정별' },
           ]}
         />
+      </View>
+      <View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
-          <Chip label="전체" count={entries.length} selected={filter === 'all'} onPress={() => setFilter('all')} />
+          <Chip label="전체" selected={filter === null} onPress={() => setFilter(null)} />
           {EMOTION_ORDER.map((k) => (
-            <Chip key={k} label={emotion[k].label} emotionKey={k} count={counts[k]} selected={filter === k} onPress={() => setFilter(k)} />
+            <Chip
+              key={k}
+              label={emotion[k].label}
+              emotionKey={k}
+              count={entries.filter((e) => e.emotion === k).length}
+              selected={filter === k}
+              onPress={() => setFilter(filter === k ? null : k)}
+            />
           ))}
         </ScrollView>
       </View>
@@ -82,11 +103,14 @@ export default function MemoriesScreen() {
         renderItem={renderItem}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <AppText variant="body" tone="tertiary" align="center">
-              {entries.length ? '이 감정으로 묻은 기억이 없어요' : '아직 기억이 없어요'}
-            </AppText>
-          </View>
+          filter ? (
+            <View style={styles.emptyFilter}>
+              <Emoji size="xxl">{makeEmotion[filter].emoji}</Emoji>
+              <AppText variant="bodySmall" tone="tertiary">
+                {emotion[filter].label} 감정의 기억이 없어요
+              </AppText>
+            </View>
+          ) : undefined
         }
       />
     </Screen>
@@ -94,13 +118,15 @@ export default function MemoriesScreen() {
 }
 
 const styles = StyleSheet.create({
-  controls: { gap: space[3], paddingBottom: space[3] },
-  filters: { gap: space[2], paddingRight: space[5] },
-  list: { gap: space[3], paddingBottom: space[8] },
-  card: { padding: space[4] },
-  cardRow: { flexDirection: 'row', gap: space[4], alignItems: 'center' },
-  plantBox: { width: space[12], alignItems: 'center', justifyContent: 'flex-end' },
-  flex: { flex: 1, gap: space[1] },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
-  empty: { paddingVertical: space[16] },
+  emptyAll: { alignItems: 'center', justifyContent: 'center', paddingBottom: space[16] + space[4] },
+  emptyTitle: { marginTop: space[4] },
+  segment: { paddingHorizontal: space[6], marginBottom: space[3] },
+  filters: { gap: space[2], paddingHorizontal: space[6], paddingBottom: space[1], marginBottom: space[4] },
+  list: { gap: space[3], paddingHorizontal: space[6], paddingBottom: space[6] },
+  card: { flexDirection: 'row', alignItems: 'center', gap: space[4], padding: space[4], borderRadius: radius.card, backgroundColor: neutral.surface },
+  pressed: { transform: [{ scale: 0.98 }] },
+  cardBody: { flex: 1, minWidth: 0, gap: space[1] },
+  stage: { alignItems: 'center', gap: space[1] },
+  stageDot: { width: space[2], height: space[2], borderRadius: radius.full },
+  emptyFilter: { alignItems: 'center', paddingVertical: space[16], gap: space[3] },
 });

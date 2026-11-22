@@ -1,17 +1,24 @@
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
-import { AppText, Button, ChoiceCard, EmotionGrid, Plant, ProgressDots, Screen, TextField } from '@/components';
+import { AppText, BackLink, Button, CloseIcon, EMOTION_ORDER, Emoji, EmotionBadge, ProgressDots, Screen, SelectCard } from '@/components';
 import { useAuth } from '@/lib/auth';
 import { useGarden } from '@/lib/garden';
 import { PlantKind } from '@/lib/growth';
 import { useToast } from '@/lib/toast';
-import { emotion, EmotionKey, space } from '@/theme/theme';
+import { textStyle } from '@/theme/fonts';
+import { brand, elevation, emotion, EmotionKey, makeEmotion, neutral, radius, size, space } from '@/theme/theme';
 
 const STEPS = 3;
+const MAX_MEMO = 500;
 
-/** 감정 묻기: 감정 → 꽃/나무 → 메모 (식물 이름은 보여주지 않음) */
+const SEEDS: { kind: PlantKind; emoji: string; tile: string; title: string; desc: string; stages: string[] }[] = [
+  { kind: 'flower', emoji: '🌸', tile: makeEmotion.anger.lightColor, title: '꽃 씨앗', desc: '7일 동안 자라요', stages: ['씨앗', '새싹', '봉오리', '꽃'] },
+  { kind: 'tree', emoji: '🌳', tile: brand.primarySoft, title: '나무 씨앗', desc: '60일 동안 자라요', stages: ['씨앗', '새싹', '묘목', '나무'] },
+];
+
+/** 감정 묻기 (Make BuryEmotionModal) — 기획 순서: 감정 → 꽃/나무 → 메모 */
 export default function BuryScreen() {
   const { session, loading } = useAuth();
   const { bury } = useGarden();
@@ -24,8 +31,7 @@ export default function BuryScreen() {
   if (!loading && !session) return <Redirect href="/login" />;
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
-  const back = () => (step === 0 ? close() : setStep(step - 1));
-  const canNext = (step === 0 && picked) || (step === 1 && kind) || step === 2;
+  const canNext = (step === 0 && !!picked) || (step === 1 && !!kind);
 
   const submit = () => {
     if (!picked || !kind) return;
@@ -35,55 +41,87 @@ export default function BuryScreen() {
   };
 
   return (
-    <Screen edges={['top', 'bottom']}>
+    <Screen edges={['top', 'bottom']} style={styles.screen}>
       <View style={styles.top}>
-        <Button label={step === 0 ? '닫기' : '이전'} variant="ghost" onPress={back} style={styles.navBtn} />
+        {step > 0 ? <BackLink label="돌아가기" onPress={() => setStep(step - 1)} /> : <View />}
+        <Pressable accessibilityRole="button" accessibilityLabel="닫기" onPress={close} style={styles.close}>
+          <CloseIcon color={neutral.decor} />
+        </Pressable>
+      </View>
+      <View style={styles.dots}>
         <ProgressDots total={STEPS} current={step} />
-        <View style={styles.navBtn} />
       </View>
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
           {step === 0 ? (
             <>
-              <Title title="지금 어떤 감정인가요?" sub="하나만 골라주세요" />
-              <EmotionGrid value={picked} onChange={setPicked} />
+              <Title title="어떤 감정을 묻을까요?" sub="지금 느끼는 감정을 골라요" />
+              <View style={styles.list}>
+                {EMOTION_ORDER.map((k) => {
+                  const e = makeEmotion[k];
+                  return (
+                    <SelectCard key={k} selected={picked === k} onPress={() => setPicked(k)} accent={e.color} selectedBg={e.lightColor}>
+                      <Emoji size="xl">{e.emoji}</Emoji>
+                      {/* 기획: 식물 이름은 보여주지 않음 */}
+                      <AppText variant="body">{emotion[k].label}</AppText>
+                    </SelectCard>
+                  );
+                })}
+              </View>
             </>
           ) : null}
 
-          {step === 1 && picked ? (
+          {step === 1 ? (
             <>
-              <Title title="어떻게 키워볼까요?" sub="꽃은 일주일, 나무는 두 달에 걸쳐 자라요" />
-              <View style={styles.choices}>
-                <ChoiceCard
-                  title="꽃"
-                  description={'금방 피어나요\n7일'}
-                  selected={kind === 'flower'}
-                  onPress={() => setKind('flower')}
-                  visual={<Plant kind="flower" emotionKey={picked} stage="bloom" scale={1.3} />}
-                />
-                <ChoiceCard
-                  title="나무"
-                  description={'천천히 자라요\n60일'}
-                  selected={kind === 'tree'}
-                  onPress={() => setKind('tree')}
-                  visual={<Plant kind="tree" emotionKey={picked} stage="bloom" />}
-                />
+              <Title title="어떤 씨앗에 담을까요?" sub="자라는 속도가 달라요" />
+              <View style={styles.seeds}>
+                {SEEDS.map((s) => (
+                  <SelectCard key={s.kind} large selected={kind === s.kind} onPress={() => setKind(s.kind)}>
+                    <View style={[styles.tile, { backgroundColor: s.tile }]}>
+                      <Emoji size="xxl">{s.emoji}</Emoji>
+                    </View>
+                    <View style={styles.seedText}>
+                      <AppText variant="body">{s.title}</AppText>
+                      <AppText variant="caption" tone="tertiary">
+                        {s.desc}
+                      </AppText>
+                      <View style={styles.stages}>
+                        {s.stages.map((st, i) => (
+                          <AppText key={st} variant="caption" tone="tertiary">
+                            {st}
+                            {i < s.stages.length - 1 ? <AppText variant="caption" color={neutral.faint}>{'  →  '}</AppText> : null}
+                          </AppText>
+                        ))}
+                      </View>
+                    </View>
+                  </SelectCard>
+                ))}
               </View>
             </>
           ) : null}
 
           {step === 2 && picked ? (
             <>
-              <Title title="마음을 조금 적어볼까요?" sub="비워둬도 괜찮아요" />
-              <TextField
-                value={memo}
-                onChangeText={setMemo}
-                placeholder="무슨 일이 있었나요?"
-                multiline
-                maxLength={500}
-                hint="메모는 묻은 뒤 24시간 동안만 고칠 수 있어요"
-              />
+              <Title title="무슨 일이 있었나요?" sub="짧게 적어도 괜찮아요 (생략 가능)" />
+              <EmotionBadge emotionKey={picked} size="lg" />
+              <View style={[styles.memoCard, elevation.soft]}>
+                <TextInput
+                  value={memo}
+                  onChangeText={setMemo}
+                  placeholder="무슨 일이 있었나요?"
+                  placeholderTextColor={neutral.textDisabled}
+                  maxLength={MAX_MEMO}
+                  multiline
+                  style={styles.memoInput}
+                />
+                <AppText variant="caption" tone="tertiary" align="right">
+                  {memo.length} / {MAX_MEMO}
+                </AppText>
+              </View>
+              <AppText variant="caption" tone="tertiary">
+                메모는 묻은 뒤 24시간 동안만 고칠 수 있어요
+              </AppText>
             </>
           ) : null}
         </ScrollView>
@@ -92,7 +130,7 @@ export default function BuryScreen() {
           {step < STEPS - 1 ? (
             <Button label="다음" disabled={!canNext} onPress={() => setStep(step + 1)} />
           ) : (
-            <Button label="묻기" onPress={submit} />
+            <Button label="🌱 묻기" glow onPress={submit} />
           )}
         </View>
       </KeyboardAvoidingView>
@@ -112,11 +150,19 @@ function Title({ title, sub }: { title: string; sub: string }) {
 }
 
 const styles = StyleSheet.create({
+  screen: { backgroundColor: neutral.overlay },
   flex: { flex: 1 },
-  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: space[2] },
-  navBtn: { minWidth: space[16], paddingHorizontal: space[2] },
-  body: { gap: space[6], paddingTop: space[6], paddingBottom: space[6] },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: space[4], paddingBottom: space[4], paddingHorizontal: space[6] },
+  close: { width: size.iconButton, height: size.iconButton, borderRadius: radius.full, backgroundColor: brand.primarySoft, alignItems: 'center', justifyContent: 'center' },
+  dots: { paddingBottom: space[6] },
+  body: { gap: space[6], paddingHorizontal: space[6], paddingBottom: space[6] },
   title: { gap: space[1] },
-  choices: { flexDirection: 'row', gap: space[3] },
-  footer: { paddingVertical: space[4] },
+  list: { gap: space[3] },
+  seeds: { gap: space[4] },
+  tile: { width: size.tile, height: size.tile, borderRadius: radius.icon, alignItems: 'center', justifyContent: 'center' },
+  seedText: { flex: 1, gap: space[1] },
+  stages: { flexDirection: 'row', flexWrap: 'wrap', marginTop: space[1] },
+  memoCard: { backgroundColor: neutral.surface, borderRadius: radius.md, padding: space[4], gap: space[1] },
+  memoInput: { ...textStyle('bodySmall'), color: neutral.textPrimary, minHeight: size.memoMin, textAlignVertical: 'top', padding: 0 },
+  footer: { paddingHorizontal: space[6], paddingTop: space[4], paddingBottom: space[6] },
 });

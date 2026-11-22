@@ -1,22 +1,25 @@
 import { StyleSheet, View } from 'react-native';
 
-import { emotion, EmotionKey, neutral, radius, space } from '@/theme/theme';
+import { emotion, EmotionKey, makeEmotion, neutral, radius, space } from '@/theme/theme';
 
 import { AppText } from './AppText';
 
-/** 감정별 가로 막대 한 줄 */
+/** 감정별 막대 한 줄 (Make) */
 export function Bar({ emotionKey, count, max }: { emotionKey: EmotionKey; count: number; max: number }) {
-  const e = emotion[emotionKey];
-  const ratio = max > 0 ? count / max : 0;
+  const e = makeEmotion[emotionKey];
+  const pct = max > 0 ? (count / max) * 100 : 0;
   return (
     <View style={styles.row}>
-      <AppText variant="bodySmall" color={e.ink} style={styles.label}>
-        {e.label}
+      <AppText variant="body" style={styles.emoji} align="center">
+        {e.emoji}
+      </AppText>
+      <AppText variant="bodySmall" style={styles.label}>
+        {emotion[emotionKey].label}
       </AppText>
       <View style={styles.track}>
-        <View style={[styles.fill, { width: `${Math.round(ratio * 100)}%`, backgroundColor: e[400] }]} />
+        <View style={[styles.fill, { width: `${pct}%`, backgroundColor: e.color }]} />
       </View>
-      <AppText variant="bodySmall" tone="secondary" style={styles.count} align="right">
+      <AppText variant="caption" tone="tertiary" style={styles.count} align="right">
         {count}
       </AppText>
     </View>
@@ -25,8 +28,9 @@ export function Bar({ emotionKey, count, max }: { emotionKey: EmotionKey; count:
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
-  label: { width: space[10] },
-  track: { flex: 1, height: space[2] + 2, borderRadius: radius.full, backgroundColor: neutral.surfaceSunken, overflow: 'hidden' },
+  emoji: { width: space[5] },
+  label: { width: space[12] },
+  track: { flex: 1, height: space[2], borderRadius: radius.full, backgroundColor: neutral.divider, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: radius.full },
-  count: { width: space[6] },
+  count: { width: space[4] },
 });

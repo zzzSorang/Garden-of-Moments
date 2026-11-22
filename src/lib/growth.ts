@@ -15,7 +15,7 @@ export const KIND_LABEL: Record<PlantKind, string> = { flower: '꽃', tree: '나
 
 export const STAGE_LABEL: Record<PlantKind, Record<GrowthStage, string>> = {
   flower: { seed: '씨앗', sprout: '새싹', bud: '봉오리', bloom: '꽃' },
-  tree: { seed: '씨앗', sprout: '새싹', bud: '어린 나무', bloom: '나무' },
+  tree: { seed: '씨앗', sprout: '새싹', bud: '묘목', bloom: '나무' },
 };
 
 /** 메모를 고칠 수 있는 시간 — 기록 후 24시간 */
@@ -60,3 +60,24 @@ export function formatDate(ts: number): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
+
+/** 그림·점 색에 쓰는 단계 (나무의 bud/bloom 은 묘목/나무 그림) */
+export type VisualStage = 'seed' | 'sprout' | 'bud' | 'bloom' | 'sapling' | 'tree';
+export function visualStage(kind: PlantKind, stage: GrowthStage): VisualStage {
+  if (kind === 'tree' && stage === 'bud') return 'sapling';
+  if (kind === 'tree' && stage === 'bloom') return 'tree';
+  return stage;
+}
+
+/** 단계별 한 줄 문구 (Make) */
+export const STAGE_MESSAGE: Record<VisualStage, string> = {
+  seed: '씨앗이 땅 속에서 잠들어 있어요',
+  sprout: '조용히 고개를 들기 시작했어요',
+  bud: '곧 피어날 준비를 하고 있어요',
+  bloom: '아, 내가 이걸 이겨냈구나 🌸',
+  sapling: '든든하게 뿌리를 내리고 있어요',
+  tree: '긴 시간을 견뎌낸 나무가 되었어요 🌳',
+};
+
+/** 다 자라는 데 걸리는 날 (꽃 7일, 나무 60일) */
+export const TOTAL_DAYS: Record<PlantKind, number> = { flower: 7, tree: 60 };

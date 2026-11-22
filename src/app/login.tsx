@@ -2,7 +2,7 @@ import { Redirect } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
-import { AppText, Button, Card, Screen, TextField } from '@/components';
+import { AppText, Button, Card, Pingongi, Screen, TextField } from '@/components';
 import { friendlyAuthError, useAuth } from '@/lib/auth';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { brand, space } from '@/theme/theme';
@@ -49,16 +49,20 @@ export default function LoginScreen() {
     <Screen>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+          {/* 로그인은 Make에 없는 화면 — Make 톤(핑옹이·초록)으로 맞춤 */}
           <View style={styles.hero}>
-            <AppText variant="display">사이의 정원</AppText>
-            <AppText variant="body" tone="secondary">
+            <Pingongi size={96} />
+            <AppText variant="title" color={brand.primaryInk} align="center">
+              사이의 정원
+            </AppText>
+            <AppText variant="bodySmall" tone="tertiary" align="center">
               감정을 묻고, 천천히 피워내는 곳
             </AppText>
           </View>
 
           {!isSupabaseConfigured ? (
-            <Card sunken>
-              <AppText variant="bodyStrong">아직 서버와 연결되지 않았어요</AppText>
+            <Card>
+              <AppText variant="body">아직 서버와 연결되지 않았어요</AppText>
               <AppText variant="bodySmall" tone="secondary">
                 프로젝트 폴더의 .env 파일에 Supabase 주소와 키를 넣고 앱을 다시 실행해 주세요.
               </AppText>
@@ -122,8 +126,8 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  content: { flexGrow: 1, justifyContent: 'center', gap: space[6], paddingVertical: space[8] },
-  hero: { gap: space[2] },
+  content: { flexGrow: 1, justifyContent: 'center', gap: space[6], paddingVertical: space[8], paddingHorizontal: space[6] },
+  hero: { gap: space[2], alignItems: 'center' },
   form: { gap: space[4] },
   actions: { gap: space[3] },
 });

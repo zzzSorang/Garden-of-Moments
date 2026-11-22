@@ -1,39 +1,36 @@
 import { Pressable, StyleSheet } from 'react-native';
 
-import { brand, elevation, layout, radius, space } from '@/theme/theme';
+import { brand, elevation, radius, size, space } from '@/theme/theme';
 
 import { AppText } from './AppText';
 
-type Props = { onPress?: () => void; accessibilityLabel: string };
-
-/** 화면 오른쪽 아래에 떠 있는 + 버튼 */
-export function FloatingButton({ onPress, accessibilityLabel }: Props) {
+/** + 버튼 (Make) — 56px, 오른쪽 24, 탭바 바로 위 */
+export function FloatingButton({ onPress, accessibilityLabel }: { onPress?: () => void; accessibilityLabel: string }) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       onPress={onPress}
       style={({ pressed }) => [styles.base, elevation.float, pressed && styles.pressed]}>
-      <AppText variant="display" color={brand.onPrimary}>
+      <AppText variant="display" color={brand.onPrimary} style={styles.plus}>
         +
       </AppText>
     </Pressable>
   );
 }
 
-const size = layout.minTouch + space[4];
-
 const styles = StyleSheet.create({
   base: {
     position: 'absolute',
-    right: layout.screenGutter,
-    bottom: space[6],
-    width: size,
-    height: size,
+    right: space[6],
+    bottom: space[4],
+    width: size.fab,
+    height: size.fab,
     borderRadius: radius.full,
     backgroundColor: brand.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   pressed: { backgroundColor: brand.primaryPressed },
+  plus: { lineHeight: 32 },
 });

@@ -1,37 +1,41 @@
+import { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { layout, neutral, space } from '@/theme/theme';
+import { brand, neutral, radius, size, space } from '@/theme/theme';
 
 import { AppText } from './AppText';
+import { ChevronIcon } from './illustrations';
 
-type Props = { label: string; value?: string; onPress?: () => void; last?: boolean };
+type Props = { icon: ReactNode; label: string; value?: string; onPress?: () => void; last?: boolean };
 
-/** 설정 목록 한 줄 */
-export function ListRow({ label, value, onPress, last }: Props) {
+/** 설정 목록 한 줄 (Make) — 아이콘 상자 + 이름 + 값 + › */
+export function ListRow({ icon, label, value, onPress, last }: Props) {
   return (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
       disabled={!onPress}
       style={({ pressed }) => [styles.row, !last && styles.divider, pressed && styles.pressed]}>
-      <AppText variant="body">{label}</AppText>
-      <View style={styles.right}>
-        {value ? (
-          <AppText variant="bodySmall" tone="tertiary">
-            {value}
-          </AppText>
-        ) : null}
-        <AppText variant="body" color={neutral.decor}>
-          ›
+      <View style={styles.icon}>{icon}</View>
+      <AppText variant="bodySmall" style={styles.flex}>
+        {label}
+      </AppText>
+      {value ? (
+        <AppText variant="bodySmall" tone="tertiary">
+          {value}
         </AppText>
-      </View>
+      ) : null}
+      <ChevronIcon color={neutral.faint} />
     </Pressable>
   );
 }
 
+export const listIconColor = brand.primary;
+
 const styles = StyleSheet.create({
-  row: { minHeight: layout.minTouch + space[2], flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space[4] },
-  divider: { borderBottomWidth: 1, borderBottomColor: neutral.border },
-  right: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
-  pressed: { backgroundColor: neutral.surfaceSunken },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[4], paddingHorizontal: space[5] },
+  divider: { borderBottomWidth: 1, borderBottomColor: neutral.divider },
+  icon: { width: size.iconButton, height: size.iconButton, borderRadius: radius.sm, backgroundColor: brand.primarySoft, alignItems: 'center', justifyContent: 'center' },
+  flex: { flex: 1 },
+  pressed: { backgroundColor: neutral.gardenSky },
 });

@@ -2,32 +2,18 @@ import { Pressable, StyleSheet, View, ViewProps } from 'react-native';
 
 import { elevation, neutral, radius, space } from '@/theme/theme';
 
-type Props = ViewProps & { sunken?: boolean; onPress?: () => void };
+type Props = ViewProps & { onPress?: () => void };
 
-export function Card({ sunken, style, onPress, ...rest }: Props) {
-  const s = [styles.base, sunken ? styles.sunken : elevation.card, style];
+/** Make 카드 — 흰 배경, 라운드 20, 은은한 초록 그림자 */
+export function Card({ style, onPress, ...rest }: Props) {
+  const s = [styles.base, elevation.card, style];
   if (onPress) {
-    return (
-      <Pressable
-        accessibilityRole="button"
-        onPress={onPress}
-        style={({ pressed }) => [...s, pressed && styles.pressed]}
-        {...rest}
-      />
-    );
+    return <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [...s, pressed && styles.pressed]} {...rest} />;
   }
   return <View {...rest} style={s} />;
 }
 
 const styles = StyleSheet.create({
-  base: {
-    backgroundColor: neutral.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: neutral.border,
-    padding: space[5],
-    gap: space[3],
-  },
-  sunken: { backgroundColor: neutral.surfaceSunken },
-  pressed: { backgroundColor: neutral.surfaceSunken },
+  base: { backgroundColor: neutral.surface, borderRadius: radius.lg, padding: space[5], gap: space[4] },
+  pressed: { transform: [{ scale: 0.98 }] },
 });

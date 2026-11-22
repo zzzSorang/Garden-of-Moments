@@ -1,85 +1,150 @@
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { AppText, Bar, Button, Card, DevClockPanel, EMOTION_ORDER, ListRow, Screen, ScreenHeader } from '@/components';
-import { useAuth } from '@/lib/auth';
+import { AppText, Bar, BellIcon, Button, Card, DevClockPanel, EMOTION_ORDER, Emoji, InfoIcon, ListRow, LockIcon, Pingongi, Screen, ScreenHeader } from '@/components';
 import { useGarden } from '@/lib/garden';
 import { growthStage } from '@/lib/growth';
 import { supabase } from '@/lib/supabase';
 import { useNow } from '@/lib/useNow';
-import { brand, EmotionKey, space } from '@/theme/theme';
+import { brand, elevation, EmotionKey, neutral, radius, size, space } from '@/theme/theme';
 
+/** 프로필 (Make ProfileScreen) */
 export default function ProfileScreen() {
-  const { session } = useAuth();
   const { entries } = useGarden();
   const now = useNow();
 
   const stats = useMemo(() => {
     const counts = Object.fromEntries(EMOTION_ORDER.map((k) => [k, 0])) as Record<EmotionKey, number>;
-    entries.forEach((e) => counts[e.emotion]++);
-    const bloomed = entries.filter((e) => growthStage(e.kind, e.createdAt, now) === 'bloom').length;
-    const first = entries.reduce((min, e) => Math.min(min, e.createdAt), now);
-    const days = entries.length ? Math.floor((now - first) / 86_400_000) + 1 : 0;
-    return { counts, bloomed, days, max: Math.max(0, ...Object.values(counts)) };
+    let growing = 0;
+    let done = 0;
+    entries.forEach((e) => {
+      counts[e.emotion]++;
+      const s = growthStage(e.kind, e.createdAt, now);
+      if (s === 'bloom') done++;
+      else if (s !== 'seed') growing++;
+    });
+    return { counts, growing, done, max: Math.max(1, ...Object.values(counts)) };
   }, [entries, now]);
 
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <ScreenHeader title="프로필" subtitle={session?.user.email ?? undefined} />
+        <ScreenHeader title="나의 정원" />
 
-        <Card>
-          <View style={styles.statsRow}>
-            {[
-              { label: '묻은 감정', value: entries.length },
-              { label: '다 자란 식물', value: stats.bloomed },
-              { label: '정원 가꾼 날', value: stats.days },
-            ].map((s) => (
-              <View key={s.label} style={styles.stat}>
-                <AppText variant="title" color={brand.primaryInk}>
-                  {s.value}
-                </AppText>
-                <AppText variant="caption" tone="tertiary">
-                  {s.label}
-                </AppText>
-              </View>
-            ))}
+        <View style={[styles.hero, elevation.hero]}>
+          <View style={styles.avatar}>
+            <Pingongi size={56} />
           </View>
-        </Card>
-
-        <Card>
-          <AppText variant="heading">감정별 기록</AppText>
-          {EMOTION_ORDER.map((k) => (
-            <Bar key={k} emotionKey={k} count={stats.counts[k]} max={stats.max} />
-          ))}
-        </Card>
-
-        <View>
-          <AppText variant="bodySmall" tone="tertiary" style={styles.sectionLabel}>
-            설정
-          </AppText>
-          <Card style={styles.listCard}>
-            {/* TODO: 각 항목 화면 연결. 테마 설정은 MVP 제외 */}
-            <ListRow label="알림" value="준비 중" />
-            <ListRow label="앱 소개" />
-            <ListRow label="개인정보처리방침" last />
-          </Card>
+          <View style={styles.flex}>
+            <AppText variant="body">핑옹이의 정원</AppText>
+            <AppText variant="caption" tone="tertiary">
+              감정을 묻기 시작한 지 오래됐어요
+            </AppText>
+            <View style={styles.badge}>
+              <Emoji size="sm">🌱</Emoji>
+              <AppText variant="caption" color={brand.primaryInk}>
+                정원사
+              </AppText>
+            </View>
+          </View>
         </View>
 
-        {/* 임시: 테스트용 로그아웃 */}
-        <Button label="로그아웃" variant="ghost" onPress={() => supabase?.auth.signOut()} />
+        <View style={styles.stats}>
+          {[
+            { value: entries.length, label: '총 감정' },
+            { value: stats.growing, label: '자라는 중' },
+            { value: stats.done, label: '피어난 꽃·나무' },
+          ].map((s) => (
+            <View key={s.label} style={[styles.stat, elevation.card]}>
+              <AppText variant="stat" color={brand.primaryInk}>
+                {s.value}
+              </AppText>
+              <AppText variant="tab" tone="tertiary">
+                {s.label}
+              </AppText>
+            </View>
+          ))}
+        </View>
+
+        <Card style={styles.section}>
+          <AppText variant="bodySmall" tone="tertiary">
+            감정별 기록
+          </AppText>
+          <View style={styles.bars}>
+            {EMOTION_ORDER.map((k) => (
+              <Bar key={k} emotionKey={k} count={stats.counts[k]} max={stats.max} />
+            ))}
+          </View>
+          {entries.length === 0 ? (
+            <AppText variant="bodySmall" tone="tertiary" align="center">
+              아직 묻은 감정이 없어요
+            </AppText>
+          ) : null}
+        </Card>
+
+        {/* 기획: '테마'는 MVP 제외. 각 항목 화면은 아직 연결 전 */}
+        <Card style={[styles.section, styles.list]}>
+          <ListRow icon={<BellIcon color={brand.primary} />} label="알림 설정" />
+          <ListRow icon={<InfoIcon color={brand.primary} />} label="앱 소개" />
+          <ListRow icon={<LockIcon color={brand.primary} />} label="개인정보 처리방침" last />
+        </Card>
 
         {/* 개발 빌드에서만 보이는 시간 조절 도구 (출시 빌드에서는 숨김) */}
-        {__DEV__ ? <DevClockPanel /> : null}
+        {__DEV__ ? (
+          <View style={styles.section}>
+            <DevClockPanel />
+          </View>
+        ) : null}
+
+        <AppText variant="caption" color={neutral.faint} align="center">
+          사이의 정원 v1.0.0
+        </AppText>
+        {/* 임시: 테스트용 로그아웃 */}
+        <Button label="로그아웃" variant="ghost" onPress={() => supabase?.auth.signOut()} />
       </ScrollView>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { gap: space[4], paddingBottom: space[10] },
-  statsRow: { flexDirection: 'row' },
-  stat: { flex: 1, alignItems: 'center', gap: space[1] },
-  sectionLabel: { paddingHorizontal: space[1], paddingBottom: space[2] },
-  listCard: { padding: 0, gap: 0, overflow: 'hidden' },
+  content: { paddingBottom: space[6] },
+  flex: { flex: 1, minWidth: 0, gap: 2 },
+  hero: {
+    marginHorizontal: space[6],
+    marginTop: space[2],
+    marginBottom: space[5],
+    padding: space[5],
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[4],
+    backgroundColor: neutral.surface,
+    borderRadius: radius.xl,
+  },
+  avatar: {
+    width: size.avatar,
+    height: size.avatar,
+    borderRadius: radius.full,
+    backgroundColor: brand.primarySoft,
+    borderWidth: 2,
+    borderColor: neutral.borderSoft,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[1] + 2,
+    alignSelf: 'flex-start',
+    marginTop: space[2],
+    paddingHorizontal: space[3],
+    paddingVertical: space[1],
+    borderRadius: radius.full,
+    backgroundColor: brand.primarySoft,
+  },
+  stats: { flexDirection: 'row', gap: space[3], paddingHorizontal: space[6], marginBottom: space[5] },
+  stat: { flex: 1, alignItems: 'center', gap: space[1], paddingVertical: space[4], backgroundColor: neutral.surface, borderRadius: radius.md },
+  section: { marginHorizontal: space[6], marginBottom: space[5] },
+  bars: { gap: space[3] },
+  list: { padding: 0, gap: 0, overflow: 'hidden', marginBottom: space[8] },
 });
