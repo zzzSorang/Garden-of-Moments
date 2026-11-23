@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, PressableProps, StyleSheet } from 'react-native';
 
-import { brand, elevation, neutral, radius, space } from '@/theme/theme';
+import { border, brand, elevation, neutral, opacity, radius, space } from '@/theme/theme';
 
 import { AppText } from './AppText';
 
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   base: { paddingVertical: space[4], paddingHorizontal: space[5], borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
   primary: { backgroundColor: brand.primary },
   primaryDisabled: { backgroundColor: brand.primaryDisabled },
-  secondary: { backgroundColor: neutral.surface, borderWidth: 1.5, borderColor: neutral.borderSoft },
+  secondary: { backgroundColor: neutral.surface, borderWidth: border.regular, borderColor: neutral.borderSoft },
   ghost: { backgroundColor: 'transparent', paddingVertical: space[3] },
   danger: { backgroundColor: 'transparent', paddingVertical: space[3] },
 });
@@ -54,6 +54,6 @@ const styles = StyleSheet.create({
 const pressedStyle = StyleSheet.create({
   primary: { backgroundColor: brand.primaryPressed },
   secondary: { backgroundColor: brand.primarySoft },
-  ghost: { opacity: 0.6 },
-  danger: { opacity: 0.6 },
+  ghost: { opacity: opacity.muted },
+  danger: { opacity: opacity.muted },
 });

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
 
 import { textStyle } from '@/theme/fonts';
-import { brand, layout, neutral, radius, space } from '@/theme/theme';
+import { border, brand, layout, neutral, radius, space } from '@/theme/theme';
 
 import { AppText } from './AppText';
 
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     minHeight: layout.minTouch + space[2],
     paddingHorizontal: space[4],
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: border.thin,
     borderColor: neutral.borderSoft,
     backgroundColor: neutral.surface,
   },

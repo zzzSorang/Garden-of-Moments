@@ -13,6 +13,7 @@ export { FloatingButton } from './FloatingButton';
 export { GardenScene } from './GardenScene';
 export * from './illustrations';
 export { ListRow } from './ListRow';
+export { MemoInput } from './MemoInput';
 export { ProgressDots } from './ProgressDots';
 export { Screen } from './Screen';
 export { ScreenHeader } from './ScreenHeader';

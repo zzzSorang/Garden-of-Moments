@@ -1,16 +1,17 @@
+import Constants from 'expo-constants';
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppText, Bar, BellIcon, Button, Card, DevClockPanel, EMOTION_ORDER, Emoji, InfoIcon, ListRow, LockIcon, Pingongi, Screen, ScreenHeader } from '@/components';
 import { useGarden } from '@/lib/garden';
-import { growthStage } from '@/lib/growth';
+import { DAY, growthStage } from '@/lib/growth';
 import { supabase } from '@/lib/supabase';
 import { useNow } from '@/lib/useNow';
-import { brand, elevation, EmotionKey, neutral, radius, size, space } from '@/theme/theme';
+import { border, brand, elevation, EmotionKey, neutral, radius, size, space } from '@/theme/theme';
 
 /** 프로필 (Make ProfileScreen) */
 export default function ProfileScreen() {
-  const { entries } = useGarden();
+  const { entries, addSeed, clearSeed } = useGarden();
   const now = useNow();
 
   const stats = useMemo(() => {
@@ -23,7 +24,9 @@ export default function ProfileScreen() {
       if (s === 'bloom') done++;
       else if (s !== 'seed') growing++;
     });
-    return { counts, growing, done, max: Math.max(1, ...Object.values(counts)) };
+    const first = entries.length ? Math.min(...entries.map((e) => e.createdAt)) : null;
+    const days = first === null ? null : Math.floor((now - first) / DAY) + 1;
+    return { counts, growing, done, days, max: Math.max(1, ...Object.values(counts)) };
   }, [entries, now]);
 
   return (
@@ -33,12 +36,12 @@ export default function ProfileScreen() {
 
         <View style={[styles.hero, elevation.hero]}>
           <View style={styles.avatar}>
-            <Pingongi size={56} />
+            <Pingongi size={size.mascotAvatar} />
           </View>
           <View style={styles.flex}>
             <AppText variant="body">핑옹이의 정원</AppText>
             <AppText variant="caption" tone="tertiary">
-              감정을 묻기 시작한 지 오래됐어요
+              {stats.days === null ? '아직 묻은 감정이 없어요' : `감정을 묻기 시작한 지 ${stats.days}일째`}
             </AppText>
             <View style={styles.badge}>
               <Emoji size="sm">🌱</Emoji>
@@ -93,11 +96,15 @@ export default function ProfileScreen() {
         {__DEV__ ? (
           <View style={styles.section}>
             <DevClockPanel />
+            <View style={styles.seedRow}>
+              <Button label="더미 데이터 넣기" variant="secondary" onPress={addSeed} style={styles.flex} />
+              <Button label="더미 비우기" variant="ghost" onPress={clearSeed} style={styles.flex} />
+            </View>
           </View>
         ) : null}
 
         <AppText variant="caption" color={neutral.faint} align="center">
-          사이의 정원 v1.0.0
+          사이의 정원 v{Constants.expoConfig?.version}
         </AppText>
         {/* 임시: 테스트용 로그아웃 */}
         <Button label="로그아웃" variant="ghost" onPress={() => supabase?.auth.signOut()} />
@@ -125,7 +132,7 @@ const styles = StyleSheet.create({
     height: size.avatar,
     borderRadius: radius.full,
     backgroundColor: brand.primarySoft,
-    borderWidth: 2,
+    borderWidth: border.thick,
     borderColor: neutral.borderSoft,
     overflow: 'hidden',
     alignItems: 'center',
@@ -134,7 +141,7 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space[1] + 2,
+    gap: space[1.5],
     alignSelf: 'flex-start',
     marginTop: space[2],
     paddingHorizontal: space[3],
@@ -146,5 +153,6 @@ const styles = StyleSheet.create({
   stat: { flex: 1, alignItems: 'center', gap: space[1], paddingVertical: space[4], backgroundColor: neutral.surface, borderRadius: radius.md },
   section: { marginHorizontal: space[6], marginBottom: space[5] },
   bars: { gap: space[3] },
+  seedRow: { flexDirection: 'row', gap: space[3], marginTop: space[3] },
   list: { padding: 0, gap: 0, overflow: 'hidden', marginBottom: space[8] },
 });

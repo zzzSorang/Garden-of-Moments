@@ -1,26 +1,20 @@
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { AppText, BackLink, Button, Card, EmotionBadge, HeroGradient, PlantIllustration, Screen } from '@/components';
+import { AppText, BackLink, Button, Card, EmotionBadge, HeroGradient, MemoInput, PlantIllustration, Screen } from '@/components';
 import { useAuth } from '@/lib/auth';
 import { useGarden } from '@/lib/garden';
-import { canEditMemo, formatDuration, growthStage, MEMO_EDIT_WINDOW, STAGE_LABEL, STAGE_MESSAGE, TOTAL_DAYS, visualStage } from '@/lib/growth';
+import { canEditMemo, DAY, formatDate, formatDuration, growthStage, MEMO_EDIT_WINDOW, STAGE_LABEL, STAGE_MESSAGE, TOTAL_DAYS, visualStage } from '@/lib/growth';
 import { useNow } from '@/lib/useNow';
-import { textStyle } from '@/theme/fonts';
-import { brand, makeEmotion, neutral, radius, size, space, stageDot } from '@/theme/theme';
-
-const longDate = (ts: number) => {
-  const d = new Date(ts);
-  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
-};
+import { border, brand, makeEmotion, neutral, opacity, radius, size, space, stageDot } from '@/theme/theme';
 
 /** 기억 상세 (Make DetailScreen) */
 export default function MemoryDetailScreen() {
   const { session, loading } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { entries, updateMemo, remove } = useGarden();
-  const now = useNow(15_000);
+  const now = useNow(15 * 1000);
   const entry = entries.find((e) => e.id === id);
   const [draft, setDraft] = useState(entry?.memo ?? '');
   const [editing, setEditing] = useState(false);
@@ -47,7 +41,7 @@ export default function MemoryDetailScreen() {
   const growth = growthStage(entry.kind, entry.createdAt, now);
   const stage = visualStage(entry.kind, growth);
   const elapsed = now - entry.createdAt;
-  const days = Math.floor(elapsed / 86_400_000);
+  const days = Math.floor(elapsed / DAY);
   const editable = canEditMemo(entry.createdAt, now);
   const plantSize = stage === 'tree' ? 140 : stage === 'sapling' ? 120 : 100;
 
@@ -83,7 +77,7 @@ export default function MemoryDetailScreen() {
             </Row>
             <View style={styles.divider} />
             <Row label="묻은 날">
-              <AppText variant="bodySmall">{longDate(entry.createdAt)}</AppText>
+              <AppText variant="bodySmall">{formatDate(entry.createdAt)}</AppText>
             </Row>
             <View style={styles.divider} />
             <Row label="경과 일수">
@@ -98,7 +92,7 @@ export default function MemoryDetailScreen() {
               <AppText variant="caption" tone="tertiary">
                 그날의 메모
               </AppText>
-              <TextInput value={draft} onChangeText={setDraft} multiline maxLength={500} autoFocus style={styles.memoInput} />
+              <MemoInput value={draft} onChangeText={setDraft} autoFocus />
               <View style={styles.row}>
                 <Button label="취소" variant="secondary" style={styles.flex} onPress={() => setEditing(false)} />
                 <Button label="저장" style={styles.flex} onPress={() => { updateMemo(entry.id, draft); setEditing(false); }} />
@@ -174,16 +168,15 @@ const styles = StyleSheet.create({
     paddingBottom: space[8],
   },
   heroPlant: { zIndex: 1 },
-  glow: { position: 'absolute', width: size.heroGlow, height: size.heroGlow, borderRadius: radius.full, opacity: 0.12, bottom: -space[10] },
+  glow: { position: 'absolute', width: size.heroGlow, height: size.heroGlow, borderRadius: radius.full, opacity: opacity.glow, bottom: -space[10] },
   content: { paddingHorizontal: space[6], paddingTop: space[6], gap: space[5] },
   info: { gap: space[4] },
   infoRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   divider: { height: 1, backgroundColor: neutral.divider },
   stageRow: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
-  stageDot: { width: 10, height: 10, borderRadius: radius.full },
+  stageDot: { width: size.stageDot, height: size.stageDot, borderRadius: radius.full },
   memoCard: { gap: space[3] },
-  memoEmpty: { padding: space[5], borderRadius: radius.lg, backgroundColor: neutral.gardenSky, borderWidth: 1.5, borderStyle: 'dashed', borderColor: neutral.borderSoft },
-  memoInput: { ...textStyle('bodySmall'), color: neutral.textPrimary, minHeight: size.memoMin, textAlignVertical: 'top', padding: 0 },
+  memoEmpty: { padding: space[5], borderRadius: radius.lg, backgroundColor: neutral.gardenSky, borderWidth: border.regular, borderStyle: 'dashed', borderColor: neutral.borderSoft },
   actions: { alignItems: 'center' },
   confirm: { gap: space[3] },
   row: { flexDirection: 'row', gap: space[3] },

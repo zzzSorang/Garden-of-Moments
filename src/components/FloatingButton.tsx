@@ -32,5 +32,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pressed: { backgroundColor: brand.primaryPressed },
-  plus: { lineHeight: 32 },
+  plus: { lineHeight: size.fabGlyph },
 });

@@ -50,12 +50,16 @@ export const type = {
   stat: { fontFamily: font.sans.regular, fontSize: 22, lineHeight: 24, letterSpacing: 0 },
   poem: { fontFamily: font.serif.regular, fontSize: 16, lineHeight: 26, letterSpacing: -0.1 }, // 감성 멘트·핑옹이 대사
 } as const;
-export const space = { 0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 8: 32, 10: 40, 12: 48, 16: 64 } as const;
+export const space = { 0: 0, 0.5: 2, 1: 4, 1.5: 6, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 8: 32, 10: 40, 12: 48, 16: 64 } as const;
 export const layout = { screenGutter: space[5], minTouch: 44 } as const;
 /** 이모지 크기 (Make) */
 export const emojiSize = { sm: 13, md: 16, lg: 18, xl: 28, xxl: 32, big: 36, hero: 48 } as const;
 /** 고정 크기 (Make) */
-export const size = { iconButton: 32, tile: 56, fab: 56, avatar: 68, memoMin: 96, heroMin: 260, heroGlow: 200 } as const;
+export const size = { iconButton: 32, tile: 56, fab: 56, avatar: 68, memoMin: 96, heroMin: 260, heroGlow: 200, plantThumb: 48, mascotAvatar: 56, mascotHero: 96, stageDot: 10, progressDot: 6, fabGlyph: 32 } as const;
+/** 테두리 두께 */
+export const border = { thin: 1, regular: 1.5, thick: 2 } as const;
+/** 투명도 */
+export const opacity = { glow: 0.12, muted: 0.6, subtle: 0.7, chipGlow: 0.5 } as const;
 export const radius = { xs: 9, sm: 10, input: 12, icon: 14, md: 16, card: 18, lg: 20, xl: 24, full: 999 } as const;
 export const elevation = {
   float: { shadowColor: '#2D6A4F', shadowOpacity: 0.35, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
@@ -63,6 +67,8 @@ export const elevation = {
   hero: { shadowColor: '#2D6A4F', shadowOpacity: 0.09, shadowRadius: 16, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   soft: { shadowColor: '#000000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   segment: { shadowColor: '#000000', shadowOpacity: 0.08, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  /** 선택된 카드 — shadowColor는 감정 색으로 덮어씀 */
+  selected: { shadowColor: '#000000', shadowOpacity: 0.27, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
   cta: { shadowColor: '#2D6A4F', shadowOpacity: 0.3, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
 } as const;
 export const theme = { emojiSize, size, emotion, makeEmotion, botany, stageDot, neutral, brand, font, type, space, layout, radius, elevation } as const;

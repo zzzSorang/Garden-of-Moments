@@ -1,17 +1,15 @@
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { AppText, BackLink, Button, CloseIcon, EMOTION_ORDER, Emoji, EmotionBadge, ProgressDots, Screen, SelectCard } from '@/components';
+import { AppText, BackLink, Button, CloseIcon, EMOTION_ORDER, Emoji, EmotionBadge, MemoInput, ProgressDots, Screen, SelectCard } from '@/components';
 import { useAuth } from '@/lib/auth';
 import { useGarden } from '@/lib/garden';
-import { PlantKind } from '@/lib/growth';
+import { MEMO_MAX, PlantKind } from '@/lib/growth';
 import { useToast } from '@/lib/toast';
-import { textStyle } from '@/theme/fonts';
 import { brand, elevation, emotion, EmotionKey, makeEmotion, neutral, radius, size, space } from '@/theme/theme';
 
 const STEPS = 3;
-const MAX_MEMO = 500;
 
 const SEEDS: { kind: PlantKind; emoji: string; tile: string; title: string; desc: string; stages: string[] }[] = [
   { kind: 'flower', emoji: '🌸', tile: makeEmotion.anger.lightColor, title: '꽃 씨앗', desc: '7일 동안 자라요', stages: ['씨앗', '새싹', '봉오리', '꽃'] },
@@ -106,17 +104,9 @@ export default function BuryScreen() {
               <Title title="무슨 일이 있었나요?" sub="짧게 적어도 괜찮아요 (생략 가능)" />
               <EmotionBadge emotionKey={picked} size="lg" />
               <View style={[styles.memoCard, elevation.soft]}>
-                <TextInput
-                  value={memo}
-                  onChangeText={setMemo}
-                  placeholder="무슨 일이 있었나요?"
-                  placeholderTextColor={neutral.textDisabled}
-                  maxLength={MAX_MEMO}
-                  multiline
-                  style={styles.memoInput}
-                />
+                <MemoInput value={memo} onChangeText={setMemo} placeholder="무슨 일이 있었나요?" />
                 <AppText variant="caption" tone="tertiary" align="right">
-                  {memo.length} / {MAX_MEMO}
+                  {memo.length} / {MEMO_MAX}
                 </AppText>
               </View>
               <AppText variant="caption" tone="tertiary">
@@ -163,6 +153,5 @@ const styles = StyleSheet.create({
   seedText: { flex: 1, gap: space[1] },
   stages: { flexDirection: 'row', flexWrap: 'wrap', marginTop: space[1] },
   memoCard: { backgroundColor: neutral.surface, borderRadius: radius.md, padding: space[4], gap: space[1] },
-  memoInput: { ...textStyle('bodySmall'), color: neutral.textPrimary, minHeight: size.memoMin, textAlignVertical: 'top', padding: 0 },
   footer: { paddingHorizontal: space[6], paddingTop: space[4], paddingBottom: space[6] },
 });

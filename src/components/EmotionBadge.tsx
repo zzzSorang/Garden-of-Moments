@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { EmotionKey, emotion, makeEmotion, neutral, radius, space } from '@/theme/theme';
+import { border, emotion, EmotionKey, makeEmotion, neutral, radius, space } from '@/theme/theme';
 
 import { AppText } from './AppText';
 import { Emoji } from './Emoji';
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 });
 
 const sizes = StyleSheet.create({
-  xs: { paddingHorizontal: space[2], paddingVertical: 2, borderWidth: 1 },
-  sm: { paddingHorizontal: space[3], paddingVertical: space[1], borderWidth: 1.5 },
-  lg: { paddingHorizontal: space[4], paddingVertical: space[2], borderWidth: 1.5, gap: space[2] },
+  xs: { paddingHorizontal: space[2], paddingVertical: space[0.5], borderWidth: border.thin },
+  sm: { paddingHorizontal: space[3], paddingVertical: space[1], borderWidth: border.regular },
+  lg: { paddingHorizontal: space[4], paddingVertical: space[2], borderWidth: border.regular, gap: space[2] },
 });

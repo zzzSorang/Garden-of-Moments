@@ -2,8 +2,10 @@ import type { GrowthStage } from '@/theme/theme';
 
 export type PlantKind = 'flower' | 'tree';
 
-const HOUR = 60 * 60 * 1000;
-const DAY = 24 * HOUR;
+export const HOUR = 60 * 60 * 1000;
+export const DAY = 24 * HOUR;
+/** 메모 최대 글자 수 */
+export const MEMO_MAX = 500;
 
 /** 기록 시각부터 각 단계에 도달하는 데 걸리는 시간 (ms) — 기획 결정값 */
 export const GROWTH_THRESHOLDS: Record<PlantKind, { sprout: number; bud: number; bloom: number }> = {
@@ -55,11 +57,19 @@ export function formatDuration(ms: number): string {
   return parts.join(' ');
 }
 
-export function formatDate(ts: number): string {
-  const d = new Date(ts);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+/** 한국 시간(KST, UTC+9) 기준 날짜 조각 — 기기 시간대와 상관없이 항상 한국 시간으로 보여 줌 */
+function kstParts(ts: number) {
+  const d = new Date(ts + 9 * 3_600_000);
+  return { y: d.getUTCFullYear(), mo: d.getUTCMonth() + 1, d: d.getUTCDate(), h: d.getUTCHours(), mi: d.getUTCMinutes() };
 }
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/** "2026.11.22 14:05" (한국 시간) */
+export function formatDate(ts: number): string {
+  const p = kstParts(ts);
+  return `${p.y}.${pad(p.mo)}.${pad(p.d)} ${pad(p.h)}:${pad(p.mi)}`;
+}
+
 
 /** 그림·점 색에 쓰는 단계 (나무의 bud/bloom 은 묘목/나무 그림) */
 export type VisualStage = 'seed' | 'sprout' | 'bud' | 'bloom' | 'sapling' | 'tree';

@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { brand, elevation, neutral, radius, space } from '@/theme/theme';
+import { border, brand, elevation, neutral, radius, space } from '@/theme/theme';
 
 import { CheckIcon } from './illustrations';
 
@@ -28,7 +28,7 @@ export function SelectCard({ selected, onPress, children, accent = brand.primary
         styles.base,
         large ? styles.large : styles.small,
         { borderColor: selected ? accent : 'transparent', backgroundColor: selected ? selectedBg : neutral.surface },
-        selected && !large ? { ...elevation.soft, shadowColor: accent, shadowOpacity: 0.27, shadowRadius: 12, shadowOffset: { width: 0, height: 2 } } : elevation.soft,
+        selected && !large ? { ...elevation.selected, shadowColor: accent } : elevation.soft,
       ]}>
       <View style={styles.content}>{children}</View>
       {selected ? (
@@ -41,7 +41,7 @@ export function SelectCard({ selected, onPress, children, accent = brand.primary
 }
 
 const styles = StyleSheet.create({
-  base: { flexDirection: 'row', alignItems: 'center', gap: space[4], borderWidth: 2 },
+  base: { flexDirection: 'row', alignItems: 'center', gap: space[4], borderWidth: border.thick },
   small: { padding: space[4], borderRadius: radius.md },
   large: { padding: space[5], borderRadius: radius.lg },
   content: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space[4] },

@@ -6,6 +6,7 @@ import type { EmotionKey } from '@/theme/theme';
 import { useAuth } from './auth';
 import { now as appNow } from './clock';
 import { canEditMemo, PlantKind } from './growth';
+import { makeSeedEntries, SEED_PREFIX } from './seed';
 
 /** 묻은 감정 하나 */
 export type Entry = {
@@ -23,6 +24,9 @@ type GardenState = {
   bury: (input: { emotion: EmotionKey; kind: PlantKind; memo: string }) => Entry;
   updateMemo: (id: string, memo: string) => boolean;
   remove: (id: string) => void;
+  /** 개발용: 더미 데이터 넣기 / 비우기 (실제 기록은 그대로) */
+  addSeed: () => void;
+  clearSeed: () => void;
 };
 
 const GardenContext = createContext<GardenState | null>(null);
@@ -85,6 +89,11 @@ export function GardenProvider({ children }: { children: ReactNode }) {
         return true;
       },
       remove: (id) => persist(entries.filter((e) => e.id !== id)),
+      addSeed: () => {
+        const real = entries.filter((e) => !e.id.startsWith(SEED_PREFIX));
+        persist([...real, ...makeSeedEntries(appNow())].sort((a, b) => b.createdAt - a.createdAt));
+      },
+      clearSeed: () => persist(entries.filter((e) => !e.id.startsWith(SEED_PREFIX))),
     }),
     [entries, ready, persist]
   );

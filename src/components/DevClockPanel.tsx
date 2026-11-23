@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { advance, getClock, resetClock, setSpeed } from '@/lib/clock';
 import { formatDate, formatDuration } from '@/lib/growth';
 import { useNow } from '@/lib/useNow';
-import { neutral, radius, space } from '@/theme/theme';
+import { border, neutral, radius, space } from '@/theme/theme';
 
 import { AppText } from './AppText';
 import { Button } from './Button';
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     gap: space[3],
     padding: space[4],
     borderRadius: radius.lg,
-    borderWidth: 1,
+    borderWidth: border.thin,
     borderStyle: 'dashed',
     borderColor: neutral.borderStrong,
     backgroundColor: neutral.surfaceSunken,

@@ -18,4 +18,4 @@ export function ScreenHeader({ title, subtitle }: { title: string; subtitle?: st
   );
 }
 
-const styles = StyleSheet.create({ wrap: { paddingTop: space[4], paddingBottom: space[4], paddingHorizontal: space[6], gap: 2 } });
+const styles = StyleSheet.create({ wrap: { paddingTop: space[4], paddingBottom: space[4], paddingHorizontal: space[6], gap: space[0.5] } });

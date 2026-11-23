@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet } from 'react-native';
 
-import { brand, elevation, EmotionKey, makeEmotion, neutral, radius, space } from '@/theme/theme';
+import { border, brand, elevation, EmotionKey, makeEmotion, neutral, opacity, radius, space } from '@/theme/theme';
 
 import { AppText } from './AppText';
 
@@ -18,7 +18,7 @@ export function Chip({ label, emotionKey, selected, count, onPress }: Props) {
       accessibilityState={{ selected }}
       onPress={onPress}
       disabled={!onPress}
-      style={[styles.base, { backgroundColor: bg, borderColor: border }, selected && e && { ...elevation.soft, shadowColor: e.color, shadowOpacity: 0.5 }]}>
+      style={[styles.base, { backgroundColor: bg, borderColor: border }, selected && e && { ...elevation.soft, shadowColor: e.color, shadowOpacity: opacity.chipGlow }]}>
       {e ? <AppText variant="caption">{e.emoji}</AppText> : null}
       <AppText variant="caption" color={text}>
         {label}
@@ -36,11 +36,11 @@ const styles = StyleSheet.create({
   base: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space[1] + 2,
+    gap: space[1.5],
     paddingHorizontal: space[3],
-    paddingVertical: space[1] + 2,
+    paddingVertical: space[1.5],
     borderRadius: radius.full,
-    borderWidth: 1.5,
+    borderWidth: border.regular,
   },
-  count: { opacity: 0.7, marginLeft: 2 },
+  count: { opacity: opacity.subtle, marginLeft: space[0.5] },
 });

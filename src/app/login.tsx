@@ -5,7 +5,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 're
 import { AppText, Button, Card, Pingongi, Screen, TextField } from '@/components';
 import { friendlyAuthError, useAuth } from '@/lib/auth';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
-import { brand, space } from '@/theme/theme';
+import { brand, size, space } from '@/theme/theme';
 
 type Mode = 'signIn' | 'signUp';
 
@@ -51,7 +51,7 @@ export default function LoginScreen() {
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           {/* 로그인은 Make에 없는 화면 — Make 톤(핑옹이·초록)으로 맞춤 */}
           <View style={styles.hero}>
-            <Pingongi size={96} pose="greet" />
+            <Pingongi size={size.mascotHero} pose="greet" />
             <AppText variant="title" color={brand.primaryInk} align="center">
               사이의 정원
             </AppText>

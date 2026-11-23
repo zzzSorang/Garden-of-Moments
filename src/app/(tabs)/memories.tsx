@@ -4,16 +4,11 @@ import { FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native'
 
 import { AppText, Chip, EMOTION_ORDER, Emoji, EmotionBadge, PlantIllustration, Screen, ScreenHeader, SegmentedTabs } from '@/components';
 import { Entry, useGarden } from '@/lib/garden';
-import { growthStage, STAGE_LABEL, visualStage } from '@/lib/growth';
+import { formatDate, growthStage, STAGE_LABEL, visualStage } from '@/lib/growth';
 import { useNow } from '@/lib/useNow';
-import { elevation, emotion, EmotionKey, makeEmotion, neutral, radius, space, stageDot } from '@/theme/theme';
+import { elevation, emotion, EmotionKey, makeEmotion, neutral, radius, size, space, stageDot } from '@/theme/theme';
 
 type Sort = 'date' | 'emotion';
-
-const dateText = (ts: number) => {
-  const d = new Date(ts);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
-};
 
 /** 기억함 (Make SeedBoxScreen) */
 export default function MemoriesScreen() {
@@ -49,14 +44,14 @@ export default function MemoriesScreen() {
         accessibilityRole="button"
         onPress={() => router.push({ pathname: '/memory/[id]', params: { id: item.id } })}
         style={({ pressed }) => [styles.card, elevation.card, pressed && styles.pressed]}>
-        <PlantIllustration emotion={item.emotion} stage={stage} size={48} />
+        <PlantIllustration emotion={item.emotion} stage={stage} size={size.plantThumb} />
         <View style={styles.cardBody}>
           <EmotionBadge emotionKey={item.emotion} size="xs" />
           <AppText variant="bodySmall" tone={item.memo ? 'secondary' : 'tertiary'} numberOfLines={2}>
             {item.memo || '메모 없음'}
           </AppText>
           <AppText variant="caption" tone="tertiary">
-            {dateText(item.createdAt)}
+            {formatDate(item.createdAt)}
           </AppText>
         </View>
         <View style={styles.stage}>
