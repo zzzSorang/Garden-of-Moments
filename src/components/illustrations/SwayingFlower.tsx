@@ -22,7 +22,8 @@ import { useDerivedValue } from 'react-native-reanimated';
  *    이미지를 작게 줄여 넣어도 값은 그대로 둡니다)
  */
 
-const wind = Skia.RuntimeEffect.Make(`
+/** 바람 셰이더 소스 — 웹에서는 Skia 엔진이 준비된 뒤에야 만들 수 있어서, 처음 쓸 때 한 번만 만들어요 */
+const WIND_SKSL = `
 uniform shader image;
 uniform float t;      // 시간(초)
 uniform float baseY;  // 뿌리 높이(px)
@@ -38,7 +39,12 @@ half4 main(float2 p) {
   float dy = -abs(dx) * 0.04 * h;
   return image.eval(float2(p.x - dx, p.y - dy));
 }
-`)!;
+`;
+let windEffect: ReturnType<typeof Skia.RuntimeEffect.Make> = null;
+function getWind() {
+  if (!windEffect) windEffect = Skia.RuntimeEffect.Make(WIND_SKSL);
+  return windEffect!;
+}
 
 export type FlowerName = 'lavender' | 'cornflower' | 'anemone' | 'marigold' | 'peony';
 export type FlowerStage = 1 | 2 | 3;
@@ -109,7 +115,7 @@ export function SwayingFlower({ flower, stage, size, strength = 1, speed = 1 }: 
           <Group transform={[{ scale }]}>
             <Image image={soil} x={0} y={0} width={s.w} height={s.h} fit="fill" />
             <Rect x={0} y={0} width={s.w} height={s.h}>
-              <Shader source={wind} uniforms={uniforms}>
+              <Shader source={getWind()} uniforms={uniforms}>
                 <ImageShader image={plant} fit="fill" rect={{ x: 0, y: 0, width: s.w, height: s.h }} tx="decal" ty="decal" />
               </Shader>
             </Rect>
