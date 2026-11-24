@@ -44,7 +44,7 @@ export default function MemoriesScreen() {
         accessibilityRole="button"
         onPress={() => router.push({ pathname: '/memory/[id]', params: { id: item.id } })}
         style={({ pressed }) => [styles.card, elevation.card, pressed && styles.pressed]}>
-        <PlantIllustration emotion={item.emotion} stage={stage} size={size.plantThumb} />
+        <PlantIllustration emotion={item.emotion} kind={item.kind} stage={stage} size={size.plantThumb} />
         <View style={styles.cardBody}>
           <EmotionBadge emotionKey={item.emotion} size="xs" />
           <AppText variant="bodySmall" tone={item.memo ? 'secondary' : 'tertiary'} numberOfLines={2}>

@@ -7,6 +7,7 @@ import { brand, emotion, radius, space } from '@/theme/theme';
 
 import { AppText } from './AppText';
 import { GardenBackground, Pingongi, PlantIllustration } from './illustrations';
+import { WalkingPingongi } from './WalkingPingongi';
 
 /** Make 정원의 18개 자리 (x%, y%) */
 const SLOTS = [
@@ -15,6 +16,8 @@ const SLOTS = [
   { x: 22, y: 52 }, { x: 52, y: 88 }, { x: 72, y: 50 }, { x: 12, y: 70 }, { x: 60, y: 72 }, { x: 42, y: 56 },
 ];
 const BY_DEPTH = [...SLOTS].sort((a, b) => a.y - b.y); // 뒤(위) → 앞(아래)
+/** 식물이 있을 때 핑옹이가 걸어다니는 길 (가로 fromX~toX %, 발끝 세로 y %) */
+const PINGONGI_WALK = { fromX: 18, toX: 82, y: 66 };
 
 type Props = { entries: Entry[]; now: number; onPressPlant: (id: string) => void };
 
@@ -33,6 +36,12 @@ export function GardenScene({ entries, now, onPressPlant }: Props) {
     ...trees.map((e, i) => ({ e, slot: BY_DEPTH[i] })),
     ...flowers.map((e, i) => ({ e, slot: BY_DEPTH[BY_DEPTH.length - 1 - i] })),
   ].sort((a, b) => a.slot.y - b.slot.y);
+  // 핑옹이를 깊이 순서에 끼워 넣어 앞 식물에는 가려지고 뒤 식물은 가리도록
+  const front = placed.findIndex(({ slot }) => slot.y > PINGONGI_WALK.y);
+  const splitAt = front === -1 ? placed.length : front;
+  const pingongi = (
+    <WalkingPingongi key="pingongi" width={box.w} height={box.h} fromX={PINGONGI_WALK.fromX} toX={PINGONGI_WALK.toX} groundY={PINGONGI_WALK.y} />
+  );
 
   return (
     <View style={styles.scene} onLayout={onLayout}>
@@ -50,24 +59,25 @@ export function GardenScene({ entries, now, onPressPlant }: Props) {
           </View>
         </View>
       ) : (
-        box.w > 0 &&
-        placed.map(({ e, slot }) => {
-          const stage = visualStage(e.kind, growthStage(e.kind, e.createdAt, now));
-          const size = stage === 'tree' ? 68 : stage === 'sapling' ? 58 : 50;
-          return (
-            <Pressable
-              key={e.id}
-              accessibilityRole="button"
-              accessibilityLabel={`${emotion[e.emotion].label} 감정`}
-              onPress={() => onPressPlant(e.id)}
-              style={[styles.plant, { left: (slot.x / 100) * box.w - size / 2, top: (slot.y / 100) * box.h - size / 2 }]}>
-              <PlantIllustration emotion={e.emotion} stage={stage} size={size} />
-            </Pressable>
-          );
-        })
+        box.w > 0 && [...placed.slice(0, splitAt).map(renderPlant), pingongi, ...placed.slice(splitAt).map(renderPlant)]
       )}
     </View>
   );
+
+  function renderPlant({ e, slot }: (typeof placed)[number]) {
+    const stage = visualStage(e.kind, growthStage(e.kind, e.createdAt, now));
+    const size = stage === 'tree' ? 68 : stage === 'sapling' ? 58 : 50;
+    return (
+      <Pressable
+        key={e.id}
+        accessibilityRole="button"
+        accessibilityLabel={`${emotion[e.emotion].label} 감정`}
+        onPress={() => onPressPlant(e.id)}
+        style={[styles.plant, { left: (slot.x / 100) * box.w - size / 2, top: (slot.y / 100) * box.h - size / 2 }]}>
+        <PlantIllustration emotion={e.emotion} kind={e.kind} stage={stage} size={size} />
+      </Pressable>
+    );
+  }
 }
 
 const styles = StyleSheet.create({

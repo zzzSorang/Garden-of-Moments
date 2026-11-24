@@ -44,3 +44,6 @@ example
 
 # Supabase keys (never commit)
 .env
+
+# Skia 웹 엔진 — npm install 때 node_modules에서 자동 복사 (package.json postinstall)
+/public/canvaskit.wasm

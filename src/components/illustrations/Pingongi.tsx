@@ -7,13 +7,16 @@ const POSES = {
   brief: require('../../../assets/images/pingong/pingong_brief.webp'),
 } as const;
 
+/** 이미지 세로/가로 비율 */
+export const PINGONGI_RATIO = 1.36;
+
 export type PingongiPose = keyof typeof POSES;
 
 export function Pingongi({ size = 120, pose = 'default' }: { size?: number; pose?: PingongiPose }) {
   return (
     <Image
       source={POSES[pose]}
-      style={{ width: size, height: size * 1.36 }}
+      style={{ width: size, height: size * PINGONGI_RATIO }}
       contentFit="contain"
       accessibilityLabel="핑옹이"
     />

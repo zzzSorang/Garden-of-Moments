@@ -55,7 +55,7 @@ export default function MemoryDetailScreen() {
           <HeroGradient from={e.lightColor} />
           <View style={[styles.glow, { backgroundColor: e.color }]} />
           <View style={styles.heroPlant}>
-            <PlantIllustration emotion={entry.emotion} stage={stage} size={plantSize} />
+            <PlantIllustration emotion={entry.emotion} kind={entry.kind} stage={stage} size={plantSize} />
           </View>
         </View>
 

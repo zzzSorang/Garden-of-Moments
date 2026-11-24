@@ -1,13 +1,15 @@
 import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
 
-import type { VisualStage } from '@/lib/growth';
+import type { PlantKind, VisualStage } from '@/lib/growth';
 import { botany, EmotionKey, makeEmotion } from '@/theme/theme';
+
+import { FlowerName, FlowerStage, SwayingFlower } from './SwayingFlower';
 
 /**
  * 식물 일러스트 — Figma Make PlantIllustration 을 그대로 옮긴 SVG.
  * (창피=작약 개화 그림만 Make 스타일로 새로 추가)
  */
-type Props = { emotion: EmotionKey; stage: VisualStage; size?: number };
+type Props = { emotion: EmotionKey; stage: VisualStage; size?: number; /** 'flower'일 때만 수채화 흔들림 꽃 사용 (나무 새싹과 구분) */ kind?: PlantKind };
 
 const Soil = ({ cy, rx = 14, ry = 4.5, opacity = 0.4 }: { cy: number; rx?: number; ry?: number; opacity?: number }) => (
   <Ellipse cx={30} cy={cy} rx={rx} ry={ry} fill={botany.soil} opacity={opacity} />
@@ -225,7 +227,20 @@ const BLOOM: Record<EmotionKey, (p: { size: number }) => React.JSX.Element> = {
   shame: Peony,
 };
 
-export function PlantIllustration({ emotion, stage, size = 60 }: Props) {
+/** 수채화 흔들림 꽃이 있는 감정 (분노=장미는 아직 없어 기존 그림 사용) */
+const WATERCOLOR: Partial<Record<EmotionKey, FlowerName>> = {
+  sadness: 'cornflower',
+  depression: 'lavender',
+  anxiety: 'anemone',
+  hurt: 'marigold',
+  shame: 'peony',
+};
+const WATERCOLOR_STAGE: Partial<Record<VisualStage, FlowerStage>> = { sprout: 1, bud: 2, bloom: 3 };
+
+export function PlantIllustration({ emotion, stage, size = 60, kind }: Props) {
+  const flower = kind === 'flower' ? WATERCOLOR[emotion] : undefined;
+  const flowerStage = WATERCOLOR_STAGE[stage];
+  if (flower && flowerStage) return <SwayingFlower flower={flower} stage={flowerStage} size={size} />;
   switch (stage) {
     case 'seed':
       return <Seed size={size} />;

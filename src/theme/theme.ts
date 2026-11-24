@@ -55,7 +55,7 @@ export const layout = { screenGutter: space[5], minTouch: 44 } as const;
 /** 이모지 크기 (Make) */
 export const emojiSize = { sm: 13, md: 16, lg: 18, xl: 28, xxl: 32, big: 36, hero: 48 } as const;
 /** 고정 크기 (Make) */
-export const size = { iconButton: 32, tile: 56, fab: 56, avatar: 68, memoMin: 96, heroMin: 260, heroGlow: 200, plantThumb: 48, mascotAvatar: 56, mascotHero: 96, stageDot: 10, progressDot: 6, fabGlyph: 32 } as const;
+export const size = { iconButton: 32, tile: 56, fab: 56, avatar: 68, memoMin: 96, heroMin: 260, heroGlow: 200, plantThumb: 48, mascotAvatar: 56, mascotHero: 96, mascotGarden: 64, stageDot: 10, progressDot: 6, fabGlyph: 32 } as const;
 /** 테두리 두께 */
 export const border = { thin: 1, regular: 1.5, thick: 2 } as const;
 /** 투명도 */
