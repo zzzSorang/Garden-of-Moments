@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 
-/** 핑옹이 3D 렌더 이미지 (원본: 프로젝트 파일 pingong/pingong_v1.glb) */
+/** 핑옹이 3D 렌더 이미지 (레트로 CG 뷰어와 같은 조명으로 렌더, 원본: 프로젝트 파일 pingong/pingong_v1.glb) */
 const POSES = {
   default: require('../../../assets/images/pingong/pingong_default.webp'),
   greet: require('../../../assets/images/pingong/pingong_greet.webp'),
@@ -13,7 +13,7 @@ export function Pingongi({ size = 120, pose = 'default' }: { size?: number; pose
   return (
     <Image
       source={POSES[pose]}
-      style={{ width: size, height: size * 1.3 }}
+      style={{ width: size, height: size * 1.36 }}
       contentFit="contain"
       accessibilityLabel="핑옹이"
     />
