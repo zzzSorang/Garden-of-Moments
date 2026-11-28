@@ -3,8 +3,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GardenIcon, MemoryIcon, ProfileIcon } from '@/components';
 import { useAuth } from '@/lib/auth';
+import { tabBarStyle } from '@/lib/tabBar';
 import { textStyle } from '@/theme/fonts';
-import { brand, neutral, space } from '@/theme/theme';
+import { brand, neutral } from '@/theme/theme';
 
 /** 탭바 (Make) — 반투명 흰 배경, 위 얇은 선, 선 아이콘 + 11px 이름 */
 export default function TabsLayout() {
@@ -19,7 +20,7 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: brand.primary,
         tabBarInactiveTintColor: neutral.textDisabled,
-        tabBarStyle: { backgroundColor: neutral.tabBar, borderTopColor: neutral.tabBorder, borderTopWidth: 1, paddingTop: space[2], height: space[16] + insets.bottom },
+        tabBarStyle: tabBarStyle(insets.bottom),
         tabBarLabelStyle: textStyle('tab'),
         sceneStyle: { backgroundColor: neutral.bg },
       }}>

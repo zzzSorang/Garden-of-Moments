@@ -71,6 +71,47 @@ export const elevation = {
   selected: { shadowColor: '#000000', shadowOpacity: 0.27, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
   cta: { shadowColor: '#2D6A4F', shadowOpacity: 0.3, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
 } as const;
-export const theme = { emojiSize, size, emotion, makeEmotion, botany, stageDot, neutral, brand, font, type, space, layout, radius, elevation } as const;
+/**
+ * 정원 장면 (2026-11-28 보스 손그림 구도) — 옆에서 본 정원, 좌우 스크롤.
+ * 하늘이 위 75%, 지평선에 꽃이 서고, 아래 땅에 핑옹이.
+ */
+export const gardenScene = {
+  skyTop: '#CFE6F5',
+  skyBottom: '#EEF6F2',
+  cloud: '#FFFFFF',
+  ground: '#DCEFD9',
+  groundLine: '#8DBF94',
+  soilStrip: 'rgba(200,168,130,0.4)',
+  fence: '#FFFFFF',
+  fenceEdge: '#B8CEC0',
+  /** 에셋 나오기 전 소품 자리표시 (벤치·우편함·쓰레기통) */
+  placeholderLine: '#7A5C38',
+  placeholderFill: 'rgba(255,255,255,0.8)',
+  /** 사진 모드 버튼 위 어두운 막 */
+  photoScrim: 'rgba(0,0,0,0.3)',
+  /** 화면 높이 중 하늘 비율 (나머지가 땅) */
+  skyRatio: 0.75,
+  /** 땅 안에서 핑옹이 발 위치 (땅 위쪽 0 ~ 아래쪽 1) */
+  pingongiFeet: 0.69,
+  /** 지평선 줄 두께, 흙띠 높이 */
+  groundLineWidth: 3,
+  soilStripHeight: 14,
+  /** 식물 한 칸 간격 (꽃, 나무) */
+  flowerStep: 54,
+  treeStep: 120,
+  /** 단계별 식물 크기 (정사각 영역 한 변) */
+  plantSize: { seed: 36, sprout: 56, bud: 66, bloom: 78, sapling: 110, tree: 170 },
+  /** 소품 크기 */
+  bench: { width: 84, height: 42 },
+  mailbox: { width: 40, height: 66 },
+  trash: { width: 34, height: 40 },
+  fenceHeight: 34,
+  fencePost: 8,
+  /** 위 아이콘 버튼, 사진 셔터 */
+  iconButton: 40,
+  shutter: 68,
+} as const;
+
+export const theme = { gardenScene, emojiSize, size, emotion, makeEmotion, botany, stageDot, neutral, brand, font, type, space, layout, radius, elevation } as const;
 export type Theme = typeof theme;
 export default theme;
