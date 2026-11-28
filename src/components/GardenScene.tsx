@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { LayoutChangeEvent, Pressable, ScrollView, ScrollViewInstance, StyleSheet, View } from 'react-native';
+import { LayoutChangeEvent, ScrollView, ScrollViewInstance, StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import type { Entry } from '@/lib/garden';
+import { useDragScroll } from '@/lib/useDragScroll';
 import { growthStage, visualStage } from '@/lib/growth';
 import { brand, border, emotion, gardenScene as g, radius, space } from '@/theme/theme';
 
@@ -13,10 +14,9 @@ import { WalkingPingongi } from './WalkingPingongi';
 type Props = {
   entries: Entry[];
   now: number;
-  onPressPlant: (id: string) => void;
   /** 핑옹이 보이기 (사진 모드에서 숨길 수 있음) */
   showPingongi?: boolean;
-  /** false면 식물을 눌러도 아무 일 없음 (사진 모드) */
+  /** false면 사진 모드 (화면 높이 고정용) */
   interactive?: boolean;
 };
 
@@ -24,12 +24,12 @@ type Props = {
  * 정원 (2026-11-28 보스 손그림 구도)
  * - 옆에서 본 정원. 위 75%는 하늘, 지평선에 꽃이 한 줄로 서고, 아래 땅에 핑옹이가 걸어다님.
  * - 좌우로 넘겨 볼 수 있음. 처음엔 '첫 화면'만 보이고, 기록이 쌓이면 가운데서 바깥으로 넓어짐.
- * - 나무는 꽃 뒤에 섬. 벤치·우편함·쓰레기통은 에셋 나오기 전까지 점선 자리표시.
+ * - 나무는 꽃 뒤에 섬. 벤치·우편함은 에셋 나오기 전까지 점선 자리표시.
  *
  * 좌표는 '첫 화면'(앱을 켜면 보이는 한 화면, 0~화면 너비) 기준으로 계산한 뒤,
  * 왼쪽으로 넘친 만큼 전체를 밀어서 그립니다.
  */
-export function GardenScene({ entries, now, onPressPlant, showPingongi = true, interactive = true }: Props) {
+export function GardenScene({ entries, now, showPingongi = true, interactive = true }: Props) {
   const [box, setBox] = useState({ w: 0, h: 0 });
   // 지평선은 처음 잰 높이로 고정 — 사진 모드에서 탭바가 사라져도 하늘·꽃은 그대로, 땅만 아래로 늘어남
   const [baseH, setBaseH] = useState(0);
@@ -39,14 +39,16 @@ export function GardenScene({ entries, now, onPressPlant, showPingongi = true, i
     if (interactive) setBaseH(height);
   };
   const vw = box.w;
-  const horizon = (baseH || box.h) * g.skyRatio;
-  const groundH = (baseH || box.h) - horizon;
+  // 핑옹이 발끝은 고정, 지평선(땅선)은 핑옹이 허리 높이에
+  const feetY = (baseH || box.h) * g.pingongiFeet;
+  const horizon = feetY - g.pingongiWaist;
 
   const layout = useMemo(() => (vw > 0 ? computeLayout(vw, entries, now) : null), [vw, entries, now]);
 
   // 앱을 켜면 '첫 화면'이 보이도록 스크롤 위치 맞추기
   const scroll = useRef<ScrollViewInstance>(null);
   const shift = layout?.shift ?? 0;
+  useDragScroll(scroll, !!layout);
   useEffect(() => {
     if (layout) scroll.current?.scrollTo({ x: shift, animated: false });
   }, [layout, shift]);
@@ -69,6 +71,10 @@ export function GardenScene({ entries, now, onPressPlant, showPingongi = true, i
 
           {/* 땅 */}
           <View style={[styles.ground, { top: horizon }]} />
+          {/* 정원 고리 — 바깥 고리부터 깔고 안쪽 고리를 위에 겹쳐 가운데서 퍼지는 모양 */}
+          {[...layout.rings].reverse().map((r) => (
+            <View key={`r${r.ring}`} pointerEvents="none" style={[styles.ring, { top: horizon, left: r.from + shift, width: r.to - r.from, backgroundColor: g.ringGround[r.ring - 1] }]} />
+          ))}
           <View style={[styles.soil, { top: horizon }]} />
 
           {/* 나무 (꽃·소품보다 뒤) */}
@@ -82,7 +88,6 @@ export function GardenScene({ entries, now, onPressPlant, showPingongi = true, i
           {/* 소품 자리표시 */}
           <Placeholder label="벤치" x={layout.props.bench + shift} bottom={horizon} size={g.bench} />
           <Placeholder label="우편함" x={layout.props.mailbox + shift} bottom={horizon} size={g.mailbox} />
-          <Placeholder label={'쓰레\n기통'} x={layout.props.trash + shift} bottom={horizon} size={g.trash} />
 
           {/* 꽃 */}
           {layout.flowers.map((p) => renderPlant(p))}
@@ -90,7 +95,7 @@ export function GardenScene({ entries, now, onPressPlant, showPingongi = true, i
           {/* 핑옹이 — 첫 화면의 땅 위를 걸어다님 */}
           {showPingongi ? (
             <View pointerEvents="none" style={[styles.homeScreen, { left: shift, width: vw, height: box.h }]}>
-              <WalkingPingongi width={vw} height={box.h} fromX={14} toX={62} groundY={((horizon + groundH * g.pingongiFeet) / box.h) * 100} />
+              <WalkingPingongi width={vw} height={box.h} fromX={14} toX={62} groundY={(feetY / box.h) * 100} />
             </View>
           ) : null}
 
@@ -109,52 +114,85 @@ export function GardenScene({ entries, now, onPressPlant, showPingongi = true, i
     </View>
   );
 
-  function renderPlant({ e, x, size, stage }: Placed) {
+  function renderPlant({ e, x, size, stage, dy = 0 }: Placed) {
     return (
-      <Pressable
+      // 정원의 식물은 보기만 — 겹치면 누르기 어려워서 상세로 넘어가지 않음 (상세는 목록에서)
+      <View
         key={e.id}
-        disabled={!interactive}
-        accessibilityRole="button"
+        pointerEvents="none"
         accessibilityLabel={`${emotion[e.emotion].label} 감정`}
-        onPress={() => onPressPlant(e.id)}
-        style={[styles.plant, { left: x + shift - size / 2, top: horizon - size + space[1] }]}>
+        style={[styles.plant, { left: x + shift - size / 2, top: horizon - size + space[1] + dy }]}>
         <PlantIllustration emotion={e.emotion} kind={e.kind} stage={stage} size={size} />
-      </Pressable>
+      </View>
     );
   }
 }
 
-type Placed = { e: Entry; x: number; size: number; stage: ReturnType<typeof visualStage> };
+type Placed = { e: Entry; x: number; size: number; stage: ReturnType<typeof visualStage>; dy?: number };
+
+type Row = { dy: number; scale: number; dx: number };
+
+/** 여러 줄로 겹쳐 심기. 뒷줄부터 그려지도록 정렬해서 돌려줌 */
+function plantRows(list: Entry[], nextSlot: () => number, step: number, rows: readonly Row[], jitterX: number, jitterH: number, now: number): Placed[] {
+  let colX = 0;
+  return list
+    .map((e, i) => {
+      if (i % rows.length === 0) colX = nextSlot();
+      const row = rows[i % rows.length];
+      const stage = visualStage(e.kind, growthStage(e.kind, e.createdAt, now));
+      const r = hash(e.id);
+      const x = colX + (row.dx + (r - 0.5) * 2 * jitterX) * step;
+      // 키 들쭉날쭉: 가로 흐트러짐과 다른 값이 나오도록 id 뒤집어서
+      const h = 1 + (hash(e.id + '~') - 0.5) * 2 * jitterH;
+      return { e, x, size: g.plantSize[stage] * row.scale * h, stage, dy: row.dy };
+    })
+    .sort((a, b) => (a.dy ?? 0) - (b.dy ?? 0));
+}
+
+/** id로 만드는 0~1 고정값 (렌더할 때마다 위치가 바뀌지 않게) */
+function hash(id: string) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+  return ((h >>> 0) % 1000) / 1000;
+}
 
 /**
  * 자리 계산 (모두 '첫 화면' 기준 x).
  * 꽃·나무는 기준점에서 가운데 → 왼쪽 → 오른쪽 → 더 왼쪽 … 순서로 자리를 잡아서
- * 기록이 쌓일수록 정원이 바깥으로 넓어집니다. 꽃은 벤치~쓰레기통 앞자리는 건너뜀.
+ * 기록이 쌓일수록 정원이 바깥으로 넓어집니다. 꽃은 벤치~우편함 앞자리는 건너뜀.
  */
 function computeLayout(vw: number, entries: Entry[], now: number) {
   const mailboxRight = vw - space[4]; // 오른쪽 여백 16 (보스 지정)
   const props = {
     bench: vw * 0.625,
     mailbox: mailboxRight - g.mailbox.width / 2,
-    trash: vw + space[3] + g.trash.width / 2, // 첫 화면 바로 오른쪽 — 넘기면 보임
   };
   const blockedFrom = props.bench - g.bench.width / 2 - space[2];
-  const blockedTo = props.trash + g.trash.width / 2 + space[2];
+  const blockedTo = props.mailbox + g.mailbox.width / 2 + space[2];
 
   const flowerSlots = slots(vw * 0.3, g.flowerStep, (x) => x < blockedFrom || x > blockedTo);
   const treeSlots = slots(vw * 0.72, g.treeStep, () => true);
 
   // 오래된 기록부터 가운데 자리 차지 (새 기록이 바깥으로)
   const ordered = [...entries].sort((a, b) => a.createdAt - b.createdAt);
-  const place = (list: Entry[], next: () => number): Placed[] =>
-    list.map((e) => {
-      const stage = visualStage(e.kind, growthStage(e.kind, e.createdAt, now));
-      return { e, x: next(), size: g.plantSize[stage], stage };
-    });
-  const flowers = place(ordered.filter((e) => e.kind === 'flower'), flowerSlots);
-  const trees = place(ordered.filter((e) => e.kind === 'tree'), treeSlots);
+  // 꽃·나무는 한 칸에 여러 줄(뒤 → 앞)로 겹쳐 심음 — 칸 하나의 줄을 다 채운 뒤 다음 칸으로
+  const flowers = plantRows(ordered.filter((e) => e.kind === 'flower'), flowerSlots, g.flowerStep, g.flowerRows, g.flowerJitter, 0, now);
+  const trees = plantRows(ordered.filter((e) => e.kind === 'tree'), treeSlots, g.treeStep, g.treeRows, g.flowerJitter, g.treeHeightJitter, now);
 
-  const edges = [...flowers, ...trees].flatMap((p) => [p.x - p.size / 2, p.x + p.size / 2]);
+  // 정원 고리: 가장 바깥에 놓인 꽃이 속한 고리까지 열림 (최소 1고리)
+  const anchor = vw * 0.3;
+  const ringOf = (x: number) => {
+    const d = Math.round(Math.abs(x - anchor) / g.flowerStep);
+    const i = g.ringReach.findIndex((reach) => d <= reach);
+    return i === -1 ? g.ringReach.length : i + 1;
+  };
+  const openRings = Math.max(1, ...flowers.map((p) => ringOf(p.x)));
+  const rings = g.ringReach.slice(0, openRings).map((reach, i) => {
+    const half = (reach + 0.5) * g.flowerStep;
+    return { ring: i + 1, from: anchor - half, to: anchor + half };
+  });
+
+  const edges = [...flowers, ...trees].flatMap((p) => [p.x - p.size / 2, p.x + p.size / 2]).concat(rings.flatMap((r) => [r.from, r.to]));
   const minX = Math.min(0, ...edges) - space[6];
   const maxX = Math.max(vw, blockedTo, ...edges) + space[6];
   const worldW = maxX - minX;
@@ -175,7 +213,7 @@ function computeLayout(vw: number, entries: Entry[], now: number) {
   const clouds: { x: number; y: number; w: number; h: number }[] = [];
   for (let start = minX; start < maxX; start += vw) for (const c of CLOUD) if (start + c.dx * vw + c.w <= maxX) clouds.push({ x: start + c.dx * vw, y: c.y, w: c.w, h: c.h });
 
-  return { props, flowers, trees, fences, clouds, worldW, shift };
+  return { props, flowers, trees, fences, clouds, rings, worldW, shift };
 }
 
 /** 기준점에서 바깥으로 번갈아 퍼지는 자리 */
@@ -235,6 +273,7 @@ const styles = StyleSheet.create({
   world: { overflow: 'hidden' },
   cloud: { position: 'absolute', backgroundColor: g.cloud, borderRadius: radius.full, opacity: 0.9 },
   ground: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: g.ground, borderTopWidth: g.groundLineWidth, borderTopColor: g.groundLine },
+  ring: { position: 'absolute', bottom: 0, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, borderLeftWidth: border.regular, borderRightWidth: border.regular, borderColor: g.ringEdge },
   soil: { position: 'absolute', left: 0, right: 0, height: g.soilStripHeight, backgroundColor: g.soilStrip },
   plant: { position: 'absolute' },
   homeScreen: { position: 'absolute', top: 0 },

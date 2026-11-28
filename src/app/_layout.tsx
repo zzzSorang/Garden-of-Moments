@@ -33,6 +33,7 @@ export default function RootLayout() {
             <Stack.Screen name="login" />
             <Stack.Screen name="bury" options={{ presentation: 'modal' }} />
             <Stack.Screen name="memory/[id]" />
+            <Stack.Screen name="notifications" />
           </Stack>
         </ToastProvider>
       </GardenProvider>

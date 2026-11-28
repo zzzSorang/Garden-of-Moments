@@ -6,7 +6,7 @@ import { AppText } from './AppText';
 
 type Props = { label: string; emotionKey?: EmotionKey; selected?: boolean; count?: number; onPress?: () => void };
 
-/** 기억함 필터 칩 (Make) — 이모지 + 이름 + 개수 */
+/** 기억함 필터 칩 (Make) — 이름 + 개수 */
 export function Chip({ label, emotionKey, selected, count, onPress }: Props) {
   const e = emotionKey ? makeEmotion[emotionKey] : null;
   const bg = selected ? (e ? e.color : brand.primary) : neutral.surface;
@@ -19,7 +19,6 @@ export function Chip({ label, emotionKey, selected, count, onPress }: Props) {
       onPress={onPress}
       disabled={!onPress}
       style={[styles.base, { backgroundColor: bg, borderColor: border }, selected && e && { ...elevation.soft, shadowColor: e.color, shadowOpacity: opacity.chipGlow }]}>
-      {e ? <AppText variant="caption">{e.emoji}</AppText> : null}
       <AppText variant="caption" color={text}>
         {label}
       </AppText>

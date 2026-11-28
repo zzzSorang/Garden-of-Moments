@@ -7,8 +7,9 @@ import { AppText, BellIcon, CameraIcon, CloseIcon, FloatingButton, GardenScene }
 import { useGarden } from '@/lib/garden';
 import { tabBarStyle } from '@/lib/tabBar';
 import { useToast } from '@/lib/toast';
+import { hasNewNotice } from '@/lib/notifications';
 import { useNow } from '@/lib/useNow';
-import { brand, elevation, gardenScene as g, neutral, radius, space } from '@/theme/theme';
+import { border, brand, elevation, gardenScene as g, neutral, radius, space } from '@/theme/theme';
 
 /**
  * 정원 탭 (2026-11-28 보스 손그림 구도)
@@ -20,6 +21,7 @@ import { brand, elevation, gardenScene as g, neutral, radius, space } from '@/th
 export default function GardenScreen() {
   const { entries } = useGarden();
   const now = useNow();
+  const hasNew = hasNewNotice(entries, now);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const toast = useToast();
@@ -40,7 +42,6 @@ export default function GardenScreen() {
         now={now}
         showPingongi={showPingongi}
         interactive={!photo}
-        onPressPlant={(id) => router.push({ pathname: '/memory/[id]', params: { id } })}
       />
 
       {photo ? (
@@ -77,8 +78,9 @@ export default function GardenScreen() {
             <IconButton label="정원 사진 찍기" onPress={() => setPhoto(true)}>
               <CameraIcon color={brand.primary} />
             </IconButton>
-            <IconButton label="알림" onPress={() => toast('알림은 곧 준비할게요 🔔')}>
+            <IconButton label={hasNew ? '알림, 새 알림 있음' : '알림'} onPress={() => router.push('/notifications')}>
               <BellIcon color={brand.primary} size={20} />
+              {hasNew ? <View style={styles.badge} /> : null}
             </IconButton>
           </View>
           <FloatingButton accessibilityLabel="씨앗 추가" onPress={() => router.push('/bury')} />
@@ -102,6 +104,7 @@ const KNOB = 14;
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: neutral.bg },
+  badge: { position: 'absolute', top: space[2], right: space[2], width: space[2], height: space[2], borderRadius: radius.full, backgroundColor: brand.primary, borderWidth: border.regular, borderColor: neutral.surface },
   icons: { position: 'absolute', right: space[4], flexDirection: 'row', gap: space[2] },
   iconButton: { width: g.iconButton, height: g.iconButton, borderRadius: radius.input, backgroundColor: neutral.tabBar, alignItems: 'center', justifyContent: 'center' },
   pressed: { opacity: 0.7 },

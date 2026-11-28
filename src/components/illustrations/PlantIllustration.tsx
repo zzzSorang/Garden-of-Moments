@@ -3,7 +3,7 @@ import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
 import type { PlantKind, VisualStage } from '@/lib/growth';
 import { botany, EmotionKey, makeEmotion } from '@/theme/theme';
 
-import { FlowerName, FlowerStage, SwayingFlower } from './SwayingFlower';
+import { FlowerName, FlowerStage, SeedlingNo, SwayingFlower, SwayingSeedling } from './SwayingFlower';
 
 /**
  * 식물 일러스트 — Figma Make PlantIllustration 을 그대로 옮긴 SVG.
@@ -231,16 +231,19 @@ const BLOOM: Record<EmotionKey, (p: { size: number }) => React.JSX.Element> = {
 const WATERCOLOR: Partial<Record<EmotionKey, FlowerName>> = {
   sadness: 'cornflower',
   depression: 'lavender',
-  anxiety: 'anemone',
+  anxiety: 'hellebore', // 불안 = 헬레보루스 (아네모네 그림은 SwayingFlower에 남겨 둠)
   hurt: 'marigold',
-  shame: 'peony',
+  shame: 'lily', // 창피 = 은방울꽃 (모란 그림은 SwayingFlower에 남겨 둠)
 };
 const WATERCOLOR_STAGE: Partial<Record<VisualStage, FlowerStage>> = { sprout: 1, bud: 2, bloom: 3 };
+/** 막 심었을 때(씨앗 단계) 보여 줄 새싹 번호 — 헬레보루스 7, 은방울꽃 5, 금잔화 4, 나머지 3 */
+const SEEDLING_NO: Partial<Record<FlowerName, SeedlingNo>> = { hellebore: 7, lily: 5, marigold: 4 };
 
 export function PlantIllustration({ emotion, stage, size = 60, kind }: Props) {
   const flower = kind === 'flower' ? WATERCOLOR[emotion] : undefined;
   const flowerStage = WATERCOLOR_STAGE[stage];
   if (flower && flowerStage) return <SwayingFlower flower={flower} stage={flowerStage} size={size} />;
+  if (flower && stage === 'seed') return <SwayingSeedling no={SEEDLING_NO[flower] ?? 3} size={size} />;
   switch (stage) {
     case 'seed':
       return <Seed size={size} />;

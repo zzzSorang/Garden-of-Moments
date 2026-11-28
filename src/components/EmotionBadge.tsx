@@ -3,14 +3,12 @@ import { StyleSheet, View } from 'react-native';
 import { border, emotion, EmotionKey, makeEmotion, neutral, radius, space } from '@/theme/theme';
 
 import { AppText } from './AppText';
-import { Emoji } from './Emoji';
 
-/** 감정 배지 (Make) — 연한 감정색 배경 + 감정색 테두리 + 이모지 */
+/** 감정 배지 (Make) — 연한 감정색 배경 + 감정색 테두리 + 이름 */
 export function EmotionBadge({ emotionKey, size = 'sm' }: { emotionKey: EmotionKey; size?: 'xs' | 'sm' | 'lg' }) {
   const e = makeEmotion[emotionKey];
   return (
     <View style={[styles.base, sizes[size], { backgroundColor: e.lightColor, borderColor: e.color }]}>
-      <Emoji size={size === 'lg' ? 'lg' : size === 'xs' ? 'sm' : 'md'}>{e.emoji}</Emoji>
       <AppText variant={size === 'xs' ? 'caption' : 'bodySmall'} color={neutral.textPrimary}>
         {emotion[emotionKey].label}
       </AppText>

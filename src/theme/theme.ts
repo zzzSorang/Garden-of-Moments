@@ -16,9 +16,9 @@ export const emotion: Record<EmotionKey, EmotionScale> = {
   anger: { label: '분노', plant: '장미', 50: '#FFF4F4', 100: '#FEE8E8', 200: '#FED6D6', 300: '#FFBEBE', 400: '#FF9FA2', ink: '#A35055', growth: { seed: '#E7C8C8', sprout: '#F7C6C7', bud: '#FFBEBE', bloom: '#FF9FA2' } },
   sadness: { label: '슬픔', plant: '수레국화', 50: '#F1F8FF', 100: '#E3F0FE', 200: '#CBE4FF', 300: '#AED5FF', 400: '#89C3FF', ink: '#326EA7', growth: { seed: '#C0D3E8', sprout: '#BAD8F8', bud: '#AED5FF', bloom: '#89C3FF' } },
   depression: { label: '우울', plant: '라벤더', 50: '#F5F7FA', 100: '#EBEFF6', 200: '#DBE2ED', 300: '#C7D2E3', 400: '#B1BED6', ink: '#5F6B7F', growth: { seed: '#CDD1D9', sprout: '#CED5E0', bud: '#C7D2E3', bloom: '#B1BED6' } },
-  anxiety: { label: '불안', plant: '아네모네', 50: '#F7F5FE', 100: '#F0EBFE', 200: '#E5DBFE', 300: '#D7C6FF', 400: '#C7AEFE', ink: '#755EA4', growth: { seed: '#D3CDE6', sprout: '#D8CDF4', bud: '#D7C6FF', bloom: '#C7AEFE' } },
+  anxiety: { label: '불안', plant: '헬레보루스', 50: '#F7F5FE', 100: '#F0EBFE', 200: '#E5DBFE', 300: '#D7C6FF', 400: '#C7AEFE', ink: '#755EA4', growth: { seed: '#D3CDE6', sprout: '#D8CDF4', bud: '#D7C6FF', bloom: '#C7AEFE' } },
   hurt: { label: '상처', plant: '금잔화', 50: '#FEF5EB', 100: '#FCECD8', 200: '#F9DCBA', 300: '#F4C893', 400: '#ECB166', ink: '#92600B', growth: { seed: '#E0CEB9', sprout: '#EBCFAD', bud: '#F4C893', bloom: '#ECB166' } },
-  shame: { label: '창피', plant: '작약', 50: '#FEF4F8', 100: '#FDE8F1', 200: '#FBD6E6', 300: '#F7BFD8', 400: '#F09FC5', ink: '#A44D78', growth: { seed: '#E3CCD6', sprout: '#F2C7DA', bud: '#F7BFD8', bloom: '#F09FC5' } },
+  shame: { label: '창피', plant: '은방울꽃', 50: '#FEF4F8', 100: '#FDE8F1', 200: '#FBD6E6', 300: '#F7BFD8', 400: '#F09FC5', ink: '#A44D78', growth: { seed: '#E3CCD6', sprout: '#F2C7DA', bud: '#F7BFD8', bloom: '#F09FC5' } },
 };
 /** Figma Make 감정 색 — 화면은 이 값을 씁니다 (위 파스텔 스케일은 참고용으로 남김) */
 export const makeEmotion: Record<EmotionKey, { color: string; lightColor: string; emoji: string; petal: string; center: string }> = {
@@ -84,18 +84,40 @@ export const gardenScene = {
   soilStrip: 'rgba(200,168,130,0.4)',
   fence: '#FFFFFF',
   fenceEdge: '#B8CEC0',
-  /** 에셋 나오기 전 소품 자리표시 (벤치·우편함·쓰레기통) */
+  /** 에셋 나오기 전 소품 자리표시 (벤치·우편함) */
   placeholderLine: '#7A5C38',
   placeholderFill: 'rgba(255,255,255,0.8)',
   /** 사진 모드 버튼 위 어두운 막 */
   photoScrim: 'rgba(0,0,0,0.3)',
   /** 화면 높이 중 하늘 비율 (나머지가 땅) */
   skyRatio: 0.75,
-  /** 땅 안에서 핑옹이 발 위치 (땅 위쪽 0 ~ 아래쪽 1) */
-  pingongiFeet: 0.69,
+  /** 화면 높이 중 핑옹이 발끝 위치 (위 0 ~ 아래 1) */
+  pingongiFeet: 0.9225,
+  /** 발끝에서 허리까지 높이(px) — 지평선이 핑옹이 허리에 오도록 이만큼 위에 그림 */
+  pingongiWaist: 42,
   /** 지평선 줄 두께, 흙띠 높이 */
   groundLineWidth: 3,
   soilStripHeight: 14,
+  /** 정원 고리(가운데 1 → 바깥 4) — 꽃 기준점에서 몇 칸(flowerStep)까지가 그 고리인지 */
+  ringReach: [2, 5, 9, 14],
+  /** 고리별 땅 색 (안쪽일수록 오래 가꾼 진한 땅). 아직 안 열린 땅은 ground 색 */
+  ringGround: ['#BFE0BA', '#C8E5C3', '#D0E9CB', '#D6ECD2'],
+  ringEdge: 'rgba(82,160,106,0.35)',
+  /** 꽃 줄 (뒤 → 앞): 한 칸에 몇 송이까지, 줄마다 세로 위치(px, +면 아래·앞)와 크기 배율, 가로로 비켜 서는 정도(칸 대비) */
+  flowerRows: [
+    { dy: -12, scale: 0.86, dx: -0.3 },
+    { dy: 0, scale: 0.94, dx: 0.25 },
+    { dy: 12, scale: 1, dx: -0.05 },
+  ],
+  /** 송이마다 가로 위치를 살짝 흐트러뜨리는 폭(칸 대비) — 줄 맞춰 선 느낌이 덜 나게 */
+  flowerJitter: 0.18,
+  /** 나무 줄 (뒤 → 앞) — 꽃과 같은 방식, 두 줄 */
+  treeRows: [
+    { dy: -10, scale: 0.82, dx: -0.28 },
+    { dy: 0, scale: 1, dx: 0.22 },
+  ],
+  /** 나무마다 키를 들쭉날쭉하게 하는 폭 (±배율) */
+  treeHeightJitter: 0.18,
   /** 식물 한 칸 간격 (꽃, 나무) */
   flowerStep: 54,
   treeStep: 120,
@@ -104,7 +126,6 @@ export const gardenScene = {
   /** 소품 크기 */
   bench: { width: 84, height: 42 },
   mailbox: { width: 40, height: 66 },
-  trash: { width: 34, height: 40 },
   fenceHeight: 34,
   fencePost: 8,
   /** 위 아이콘 버튼, 사진 셔터 */
